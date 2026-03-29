@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
 import { MusicIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface SpotifyData {
   title: string;

@@ -54,9 +54,7 @@ export function WorkItem({
 
       <span className="mx-1.5 flex-1 border-t" />
 
-      <p className="text-muted-foreground text-right text-sm">
-        {date ? formatDate(date) : "N/A"}
-      </p>
+      <p className="text-muted-foreground text-right text-sm">{date ? formatDate(date) : "N/A"}</p>
     </li>
   );
 }

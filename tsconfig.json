@@ -2,21 +2,12 @@
   "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
     "paths": {
-      "~/*": [
-        "./src/*"
-      ]
+      "~/*": ["./src/*"]
     },
     "jsx": "react-jsx",
     "jsxImportSource": "react",
     "verbatimModuleSyntax": true
   },
-  "exclude": [
-    "node_modules",
-    "dist"
-  ],
-  "include": [
-    "src",
-    "basehub-types.d.ts",
-    "basehub.config.ts"
-  ]
+  "exclude": ["node_modules", "dist"],
+  "include": ["src", "basehub-types.d.ts", "basehub.config.ts"]
 }

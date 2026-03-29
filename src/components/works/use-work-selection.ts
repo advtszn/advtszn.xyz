@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface Identifiable {
   _id: string;
@@ -10,9 +10,7 @@ interface UseWorkSelectionOptions {
 
 const CLOSE_CURSOR = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='18' y1='6' x2='6' y2='18'/><line x1='6' y1='6' x2='18' y2='18'/></svg>") 12 12, pointer`;
 
-export function useWorkSelection<T extends Identifiable>(
-  options: UseWorkSelectionOptions = {},
-) {
+export function useWorkSelection<T extends Identifiable>(options: UseWorkSelectionOptions = {}) {
   const [hoveredItem, setHoveredItem] = useState<T | null>(null);
   const [lockedItem, setLockedItem] = useState<T | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -44,9 +42,7 @@ export function useWorkSelection<T extends Identifiable>(
     if (!lockedItem) return;
 
     const handler = (e: MouseEvent) => {
-      document.body.style.cursor = isOutsideContainer(e.target)
-        ? CLOSE_CURSOR
-        : "";
+      document.body.style.cursor = isOutsideContainer(e.target) ? CLOSE_CURSOR : "";
     };
     document.addEventListener("mousemove", handler);
     return () => {

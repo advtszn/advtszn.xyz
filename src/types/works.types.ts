@@ -1,5 +1,3 @@
-import type { RichTextNode } from "basehub/api-transaction";
-
 export type TWork = {
   _id: string;
   _title: string;

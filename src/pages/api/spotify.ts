@@ -2,8 +2,7 @@ import type { APIRoute } from "astro";
 import "dotenv/config";
 
 const SPOTIFY_TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
-const SPOTIFY_NOW_PLAYING_ENDPOINT =
-  "https://api.spotify.com/v1/me/player/currently-playing";
+const SPOTIFY_NOW_PLAYING_ENDPOINT = "https://api.spotify.com/v1/me/player/currently-playing";
 
 const getAccessToken = async () => {
   const refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
@@ -55,7 +54,7 @@ export const GET: APIRoute = async () => {
   try {
     const { access_token } = await getAccessToken();
 
-    let currentlyPlaying = await fetchSpotifyData(
+    const currentlyPlaying = await fetchSpotifyData(
       SPOTIFY_NOW_PLAYING_ENDPOINT,
       access_token,
     ).catch(() => null);
@@ -64,9 +63,7 @@ export const GET: APIRoute = async () => {
     const currentSong = isPlaying
       ? {
           title: currentlyPlaying.item.name,
-          artist: currentlyPlaying.item.artists
-            .map((artist: any) => artist.name)
-            .join(", "),
+          artist: currentlyPlaying.item.artists.map((artist: any) => artist.name).join(", "),
         }
       : null;
 
@@ -78,9 +75,6 @@ export const GET: APIRoute = async () => {
     );
   } catch (error) {
     console.error("Error fetching Spotify data:", error);
-    return new Response(
-      JSON.stringify({ error: "Error fetching Spotify data" }),
-      { status: 500 },
-    );
+    return new Response(JSON.stringify({ error: "Error fetching Spotify data" }), { status: 500 });
   }
 };

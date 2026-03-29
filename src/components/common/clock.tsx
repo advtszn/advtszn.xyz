@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Clock() {
   const formatter = new Intl.DateTimeFormat("en-US", {

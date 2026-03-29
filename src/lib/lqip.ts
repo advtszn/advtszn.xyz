@@ -1,11 +1,11 @@
-import sharp from "sharp";
 import type { ImageMetadata } from "astro";
 import path from "path";
+import sharp from "sharp";
 import { fileURLToPath } from "url";
 
 export async function generateLQIP(
   image: ImageMetadata,
-  options: { width?: number; blur?: number; grayscale?: boolean } = {}
+  options: { width?: number; blur?: number; grayscale?: boolean } = {},
 ): Promise<string> {
   const { width = 20, blur = 10, grayscale = false } = options;
 
@@ -35,9 +35,6 @@ export async function generateLQIP(
       // For build time, we need to look at where the original asset came from
       const srcDir = path.join(process.cwd(), "src");
 
-      // Extract filename from the src (handles hashed names like foo.abc123.png)
-      const filename = path.basename(imageSrc).split(".")[0];
-
       // Search in assets directory - this is a fallback
       absolutePath = path.join(srcDir, "assets", imageSrc);
     }
@@ -59,7 +56,7 @@ export async function generateLQIP(
 // Alternative: Generate LQIP from file path directly
 export async function generateLQIPFromPath(
   filePath: string,
-  options: { width?: number; blur?: number; grayscale?: boolean } = {}
+  options: { width?: number; blur?: number; grayscale?: boolean } = {},
 ): Promise<string> {
   const { width = 20, blur = 10, grayscale = false } = options;
 
@@ -83,12 +80,12 @@ export type LQIPImage = {
 
 export async function processImagesWithLQIP(
   images: { src: ImageMetadata; alt: string }[],
-  options: { grayscale?: boolean } = {}
+  options: { grayscale?: boolean } = {},
 ): Promise<LQIPImage[]> {
   return Promise.all(
     images.map(async (img) => ({
       ...img,
       lqip: await generateLQIP(img.src, options),
-    }))
+    })),
   );
 }

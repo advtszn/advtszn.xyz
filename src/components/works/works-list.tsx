@@ -1,8 +1,8 @@
-import type { TWork } from "~/types/works.types";
 import { useMediaQuery } from "usehooks-ts";
+import type { TWork } from "~/types/works.types";
 import { useWorkSelection } from "./use-work-selection";
-import { WorkItem } from "./work-item";
 import { WorkDetails } from "./work-details";
+import { WorkItem } from "./work-item";
 
 export default function WorksList({ works }: { works: TWork[] }) {
   const isMobile = useMediaQuery("(max-width: 1023px)");
