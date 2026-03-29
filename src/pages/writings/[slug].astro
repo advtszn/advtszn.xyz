@@ -12,20 +12,6 @@ const formatDate = (date: string) => {
 import Link from "~/components/common/link.astro";
 import { ArrowLeft, ChevronLeft } from "lucide-react";
 
-const {
-  writings: { items: writings },
-} = await basehub.query({
-  writings: {
-    items: {
-      _slug: true,
-    },
-  },
-});
-
-export function getStaticPaths() {
-  return writings.map(({ _slug: slug }) => ({ params: { slug } }));
-}
-
 const { slug } = Astro.params;
 
 const {
