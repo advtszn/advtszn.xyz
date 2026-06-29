@@ -30,28 +30,36 @@ const images = await Promise.all([
     src400: back2back400,
     src800: back2back800,
     alt: "back2back",
-    lqip: await generateLQIPFromPath(path.join(assetsDir, "back2back.webp"), { grayscale: true }),
+    lqip: await generateLQIPFromPath(path.join(assetsDir, "back2back.webp"), {
+      grayscale: true,
+    }),
   },
   {
     src: perspective,
     src400: perspective400,
     src800: perspective800,
     alt: "perspective",
-    lqip: await generateLQIPFromPath(path.join(assetsDir, "perspective.webp"), { grayscale: true }),
+    lqip: await generateLQIPFromPath(path.join(assetsDir, "perspective.webp"), {
+      grayscale: true,
+    }),
   },
   {
     src: ramen,
     src400: ramen400,
     src800: ramen800,
     alt: "ramen",
-    lqip: await generateLQIPFromPath(path.join(assetsDir, "ramen.webp"), { grayscale: true }),
+    lqip: await generateLQIPFromPath(path.join(assetsDir, "ramen.webp"), {
+      grayscale: true,
+    }),
   },
   {
     src: city,
     src400: city400,
     src800: city800,
     alt: "city",
-    lqip: await generateLQIPFromPath(path.join(assetsDir, "city.webp"), { grayscale: true }),
+    lqip: await generateLQIPFromPath(path.join(assetsDir, "city.webp"), {
+      grayscale: true,
+    }),
   },
 ]);
 
@@ -96,18 +104,15 @@ const age =
               everything around me)
             </p>
             <p>
-              i've worked across multiple startups as an intern, freelancer or
-              part-timer &mdash; always gravitating toward projects where design
-              and engineering overlap.
+              i naturally gravitate towards building products that blend
+              engineering, design and product thinking. I believe good taste is
+              a real differentiator that turns software into experiences people
+              love
             </p>
             <p>
               outside tech, I’ve always had this itch for creative stuff &mdash;
               i used to post anime edits, played around with graphics, even
               tried music production for a bit.
-            </p>
-            <p>
-              i have a leaning towards the mix of tech and creativity, bcs i
-              believe good taste is a real differentiator.
             </p>
           </div>
         </div>
@@ -165,7 +170,9 @@ const age =
 <script>
   document.addEventListener("astro:page-load", () => {
     const modal = document.getElementById("previewModal");
-    const previewImg = document.getElementById("previewImg") as HTMLImageElement;
+    const previewImg = document.getElementById(
+      "previewImg",
+    ) as HTMLImageElement;
     const images = document.querySelectorAll("#masonry .blur-image-wrapper");
 
     images.forEach((img) => {
