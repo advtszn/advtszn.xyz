@@ -25,7 +25,6 @@ Personal portfolio site: **Astro 7** (fully static) + **React islands** + **Tail
 **Content Collections** (`src/content.config.ts`):
 - `writings` — MDX files in `src/content/writings/` (frontmatter: title, description, date, status, thumbnail, thumbnailAlt; images live in `src/content/writings/images/`). Rendered at `/writings/[slug]` via `getStaticPaths`.
 - `works` — MDX files in `src/content/works/` (frontmatter: title, role, date, url; the body is the description). The works page renders each description server-side and passes them as hidden slot children into the `WorksList` React island, which toggles visibility client-side.
-- `links` — `src/content/links.json` via the `file()` loader (archive page).
 
 **Component Architecture**:
 - `.astro` components for static/server content

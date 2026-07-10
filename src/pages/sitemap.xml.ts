@@ -4,7 +4,6 @@ import { type CollectionEntry, getCollection } from "astro:content";
 const staticPaths = [
   "/",
   "/archive/",
-  "/archive/gfx/",
   "/kirrin/",
   "/onlyfans/",
   "/socials/",
