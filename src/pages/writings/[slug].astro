@@ -1,58 +1,44 @@
 ---
 import Container from "~/components/common/container.astro";
 import Layout from "~/layouts/Layout.astro";
-import { basehub } from "~/lib/basehub";
 import { Image } from "astro:assets";
-import { RichText } from "basehub/react-rich-text";
-
-const formatDate = (date: string) => {
-  const d = new Date(date);
-  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
-};
+import { getCollection, render } from "astro:content";
 import Link from "~/components/common/link.astro";
-import { ArrowLeft, ChevronLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-astro";
 
-const { slug } = Astro.params;
+export async function getStaticPaths() {
+  const writings = await getCollection("writings", ({ data }) => data.status === "published");
 
-const {
-  writings: { item: writing },
-} = await basehub.query({
-  writings: {
-    __args: {
-      filter: { _slug: { eq: slug }, status: { includes: "published" } },
-    },
-    item: {
-      _sys: { createdAt: true },
-      _title: true,
-      content: { json: { content: true } },
-      thumbnail: { url: true, width: true, height: true, alt: true },
-      description: true,
-    },
-  },
-});
+  return writings.map((writing) => ({
+    params: { slug: writing.id },
+    props: { writing },
+  }));
+}
 
-if (!writing) return Astro.rewrite("/404.astro");
+const formatDate = (date: Date) =>
+  date.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+const { writing } = Astro.props;
+const { Content } = await render(writing);
 ---
 
 <Layout
   content={{
-    title: `${writing._title} | advtszn`,
-    description: writing.description,
+    title: `${writing.data.title} | advtszn`,
+    description: writing.data.description,
   }}
 >
   <main>
     <Container>
       <div class="space-y-4 lg:max-w-[60%] lg:pl-4">
         <a href="/writings" class="text-muted-foreground flex items-center pt-2"
-          ><ArrowLeft size={16} className="mr-1.5" /> Go back to writings</a
+          ><ArrowLeft size={16} class="mr-1.5" /> Go back to writings</a
         >
-        <h1 class="font-serif text-4xl italic md:text-6xl">{writing._title}</h1>
+        <h1 class="font-serif text-4xl italic md:text-6xl">{writing.data.title}</h1>
         <div class="space-y-4">
           <Image
-            src={writing.thumbnail.url}
-            alt={writing.thumbnail.alt}
-            height={writing.thumbnail.height}
-            width={writing.thumbnail.width}
+            src={writing.data.thumbnail}
+            alt={writing.data.thumbnailAlt}
             class="h-full w-full object-cover"
             loading="eager"
           />
@@ -61,14 +47,14 @@ if (!writing) return Astro.rewrite("/404.astro");
               class="text-muted-foreground items-baseline-end flex justify-between"
             >
               <p class="">
-                {formatDate(writing._sys.createdAt)}
+                {formatDate(writing.data.date)}
               </p>
               <p class="font-medium">advtszn</p>
             </div>
           </div>
         </div>
-        <div class="richtext">
-          <RichText content={writing.content.json.content} />
+        <div class="mdx">
+          <Content />
         </div>
         <div class="mb-6 border-y border-dashed px-4 py-6">
           <div class="flex flex-col items-center justify-center gap-y-6">

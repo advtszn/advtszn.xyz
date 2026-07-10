@@ -1,96 +1,134 @@
 ---
-export const prerender = true;
 
 import Container from "~/components/common/container.astro";
 import Layout from "~/layouts/Layout.astro";
-import { basehub } from "~/lib/basehub";
-import Link from "~/components/common/link.astro";
-import { ArrowRight } from "lucide-react";
+import { Image } from "astro:assets";
+import BlurImage from "~/components/common/blur-image.astro";
+import { generateLQIPFromPath } from "~/lib/lqip";
+import { cn } from "~/lib/utils";
+import path from "path";
 
-const {
-  archive: {
-    links: { items: links },
-  },
-} = await basehub.query({
-  archive: {
-    links: {
-      __args: { orderBy: "_sys_createdAt__DESC" },
-      items: { _id: true, _title: true, link: true },
-    },
-  },
-});
+import LOVE from "~/assets/gfx/LOVE.webp";
+import MILLENIUM from "~/assets/gfx/MILLENIUM.webp";
+import TAKEOVER from "~/assets/gfx/TAKEOVER.webp";
+import freedom from "~/assets/gfx/freedom.webp";
+import illicit from "~/assets/gfx/illicit.webp";
+import insanity from "~/assets/gfx/insanity.webp";
+import intongues from "~/assets/gfx/intongues.webp";
+import kendrick from "~/assets/gfx/kendrick.webp";
+import redemption from "~/assets/gfx/redemption.webp";
+import wanted from "~/assets/gfx/wanted.webp";
+import zillionaire from "~/assets/gfx/zillionaire.webp";
+import ericreprid from "~/assets/gfx/ericreprid.webp";
 
-const miscLinks = [{ title: "graphics", href: "/archive/gfx" }];
+const assetsDir = path.join(process.cwd(), "src/assets/gfx");
+
+const images = await Promise.all([
+  {
+    src: LOVE,
+    alt: "halftone orange-on-black poster titled LOVE — a couple about to kiss beside pressed carnations, captioned 'i just enjoy you <3'",
+    lqip: await generateLQIPFromPath(path.join(assetsDir, "LOVE.webp")),
+  },
+  {
+    src: MILLENIUM,
+    alt: "y2k poster titled MILLENIUM — man in chrome sunglasses and a cross chain under acid-yellow graffiti type",
+    lqip: await generateLQIPFromPath(path.join(assetsDir, "MILLENIUM.webp")),
+  },
+  {
+    src: TAKEOVER,
+    alt: "pink 'y2k takeover' poster with warped chrome CULTURE type and a sepia photo of a hand reaching at the camera",
+    lqip: await generateLQIPFromPath(path.join(assetsDir, "TAKEOVER.webp")),
+  },
+  {
+    src: freedom,
+    alt: "black grunge poster reading 'embrace your freedom.' — a monarch butterfly whose body is a bullet",
+    lqip: await generateLQIPFromPath(path.join(assetsDir, "freedom.webp")),
+  },
+  {
+    src: illicit,
+    alt: "grainy black-and-white poster titled ILLICIT with gothic 'durag activity' type and a blurred fisheye portrait",
+    lqip: await generateLQIPFromPath(path.join(assetsDir, "illicit.webp")),
+  },
+  {
+    src: insanity,
+    alt: "red-on-grey poster repeating INSANITY over a halftone still of a man holding a revolver to his head",
+    lqip: await generateLQIPFromPath(path.join(assetsDir, "insanity.webp")),
+  },
+  {
+    src: intongues,
+    alt: "reimagined cover for joji's 'in tongues' EP — smoky figure on burnt orange with a serif tracklist",
+    lqip: await generateLQIPFromPath(path.join(assetsDir, "intongues.webp")),
+  },
+  {
+    src: ericreprid,
+    alt: "cover art for eric reprid's '3ternity' — blurred portrait under dripping chrome metal type",
+    lqip: await generateLQIPFromPath(path.join(assetsDir, "ericreprid.webp")),
+  },
+  {
+    src: kendrick,
+    alt: "black-and-white kendrick lamar poster with hand-drawn type, butterflies and 'good kid maad city' scrawls",
+    lqip: await generateLQIPFromPath(path.join(assetsDir, "kendrick.webp")),
+  },
+  {
+    src: redemption,
+    alt: "poster titled REDEMPTION in chromatic warped type — a glowing blue-green hand outstretched on black",
+    lqip: await generateLQIPFromPath(path.join(assetsDir, "redemption.webp")),
+  },
+  {
+    src: wanted,
+    alt: "mint-green y2k WANTED poster styled as a bounty card, 'offence: promoted y2k, bounty: $2k'",
+    lqip: await generateLQIPFromPath(path.join(assetsDir, "wanted.webp")),
+  },
+  {
+    src: zillionaire,
+    alt: "pink monochrome poster 'zillionaire — we create culture', a woman covering her face with ringed, long-nailed fingers",
+    lqip: await generateLQIPFromPath(path.join(assetsDir, "zillionaire.webp")),
+  },
+]);
 ---
 
 <Layout
   content={{
     title: "archive | advtszn",
-    description:
-      "old graphics, experiments, and little corners of the web that stuck with me.",
+    description: "cover art and posters from my prznse.dzn era",
   }}
 >
   <main>
     <Container>
-      <div class="space-y-4 md:space-y-6">
-        <h1 class="font-serif text-4xl italic md:text-6xl">archive</h1>
+      <div class="">
+        <div class="mb-8 space-y-2">
+          <h1 class="font-serif text-4xl italic md:text-6xl">archive</h1>
+          <p class="text-muted-foreground text-lg">
+            cover art and posters from my prznse.dzn era &mdash; back when i gave
+            graphic design a shot
+          </p>
+        </div>
 
         <div
-          class="flex flex-col gap-y-12 lg:flex-row lg:justify-between lg:gap-x-12 lg:gap-y-0"
+          id="masonry"
+          class={cn(
+            "gap-x-2 leading-0",
+            "[-moz-column-count:2] [-moz-column-gap:8px] [-webkit-column-count:2] [-webkit-column-gap:8px] [column-count:2]",
+            "md:[-moz-column-count:3] md:[-webkit-column-count:3] md:[column-count:3]",
+            "lg:[-moz-column-count:4] lg:[-webkit-column-count:4] lg:[column-count:4]",
+          )}
         >
-          <div class="space-y-4 lg:max-w-[45%]">
-            <h2 class="font-serif text-2xl lg:text-4xl">content i like</h2>
-            <p class="text-muted-foreground text-lg">
-              list of links from the internet that i like/appreciate (yea i
-              copied this from <Link href="https://farza.com/content"
-                >farza</Link
-              >). i'll try to keep this updated
-            </p>
-            <ol class="list-inside list-decimal space-y-1.5">
-              {
-                links.map(({ link, _id, _title }) => (
-                  <li class="text-lg font-light">
-                    <a
-                      target="_blank"
-                      class="underline underline-offset-4"
-                      href={link}
-                    >
-                      {_title}
-                    </a>
-                  </li>
-                ))
-              }
-            </ol>
-          </div>
-
-          <div class="space-y-4 lg:max-w-[45%]">
-            <h2 class="font-serif text-2xl lg:text-4xl">misc</h2>
-            <p class="text-muted-foreground text-lg">
-              random things that don't fit anywhere else &mdash; old projects,
-              experiments, and creative bits
-            </p>
-            <ul class="space-y-3">
-              {
-                miscLinks.map(({ title, href }) => (
-                  <li class="text-lg font-light">
-                    <a
-                      class="group inline-flex items-center underline underline-offset-4"
-                      href={href}
-                    >
-                      <ArrowRight
-                        className="mr-1.5 group-hover:mr-2 transition-all"
-                        strokeWidth={3}
-                        size={16}
-                      />
-                      {title}
-                    </a>
-                  </li>
-                ))
-              }
-            </ul>
-          </div>
+          {
+            images.map(({ src, alt, lqip }) => (
+              <BlurImage
+                src={src.src}
+                lqip={lqip}
+                alt={alt}
+                width={src.width}
+                height={src.height}
+                class="mb-3 h-auto w-full cursor-zoom-in rounded"
+                data-full={src.src}
+              />
+            ))
+          }
         </div>
       </div>
     </Container>
   </main>
 </Layout>
+

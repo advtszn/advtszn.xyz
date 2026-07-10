@@ -4,15 +4,14 @@ import { cn } from "~/lib/utils";
 interface WorkItemProps {
   title: string;
   url?: string;
-  date: string | null;
+  date: Date;
   isActive: boolean;
   onSelect: (e: React.MouseEvent) => void;
   onHover: () => void;
   onLeave: () => void;
 }
 
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
+const formatDate = (date: Date): string => {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   return `${month}/${date.getFullYear()}`;
 };

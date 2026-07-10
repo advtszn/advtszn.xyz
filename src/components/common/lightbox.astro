@@ -1,0 +1,83 @@
+---
+import { X } from "lucide-astro";
+---
+
+<dialog id="lightbox" class="lightbox">
+  <button id="lightbox-close" class="lightbox-close" aria-label="Close">
+    <X size={24} />
+  </button>
+  <img id="lightbox-img" src="" alt="" />
+</dialog>
+
+<script>
+  function initLightbox() {
+    const lightbox = document.getElementById("lightbox") as HTMLDialogElement;
+    const lightboxImg = document.getElementById("lightbox-img") as HTMLImageElement;
+    const closeBtn = document.getElementById("lightbox-close") as HTMLButtonElement;
+
+    if (!lightbox || !lightboxImg || !closeBtn) return;
+
+    document.querySelectorAll<HTMLElement>("[data-lightbox]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const src = el.dataset.full ?? (el as HTMLImageElement).src;
+        if (!src) return;
+        lightboxImg.src = src;
+        lightboxImg.alt = el.querySelector<HTMLImageElement>("img:not([aria-hidden])")?.alt ?? "";
+        lightbox.showModal();
+      });
+    });
+
+    closeBtn.addEventListener("click", () => lightbox.close());
+
+    lightbox.addEventListener("click", (e) => {
+      if (e.target === lightbox) lightbox.close();
+    });
+  }
+
+  initLightbox();
+  document.addEventListener("astro:after-swap", initLightbox);
+</script>
+
+<style>
+  .lightbox {
+    background: transparent;
+    border: none;
+    max-width: 90vw;
+    max-height: 90vh;
+    padding: 0;
+    margin: auto;
+    outline: none;
+    position: fixed;
+  }
+
+  .lightbox::backdrop {
+    background: rgba(0, 0, 0, 0.9);
+    cursor: pointer;
+  }
+
+  .lightbox img {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 0.5rem;
+  }
+
+  .lightbox-close {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    z-index: 10;
+    padding: 0;
+    outline: none;
+  }
+
+  .lightbox-close:hover {
+    opacity: 1;
+  }
+</style>

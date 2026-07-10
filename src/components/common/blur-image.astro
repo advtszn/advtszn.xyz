@@ -14,6 +14,8 @@ interface Props {
   "data-full"?: string;
   srcset?: string;
   sizes?: string;
+  loading?: "lazy" | "eager";
+  fetchpriority?: "high" | "low" | "auto";
 }
 
 const {
@@ -27,10 +29,16 @@ const {
   "data-full": dataFull,
   srcset,
   sizes,
+  loading = "lazy",
+  fetchpriority = "auto",
 } = Astro.props;
 ---
 
-<div class={cn("blur-image-wrapper relative overflow-hidden", className)} data-full={dataFull}>
+<div
+  class={cn("blur-image-wrapper relative overflow-hidden", className)}
+  data-full={dataFull}
+  data-lightbox={dataFull ? "" : undefined}
+>
   <img
     src={lqip}
     alt=""
@@ -48,7 +56,8 @@ const {
     width={width}
     height={height}
     class="blur-image relative block h-auto w-full opacity-0 transition-opacity duration-500"
-    loading="lazy"
+    loading={loading}
+    fetchpriority={fetchpriority}
     decoding="async"
     onload="this.style.opacity='1';this.previousElementSibling.style.opacity='0';"
   />

@@ -1,19 +1,30 @@
-import { RichText } from "basehub/react-rich-text";
-import type { TWork } from "~/types/works.types";
+import { useEffect, useRef } from "react";
+import type { TWork } from "./works-list";
 
 interface WorkDetailsProps {
   work: TWork;
   showPinHint: boolean;
   showLinkHint: boolean;
+  children: React.ReactNode;
 }
 
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
+const formatDate = (date: Date): string => {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   return `${month}/${date.getFullYear()}`;
 };
 
-export function WorkDetails({ work, showPinHint, showLinkHint }: WorkDetailsProps) {
+export function WorkDetails({ work, showPinHint, showLinkHint, children }: WorkDetailsProps) {
+  const descriptionsRef = useRef<HTMLDivElement>(null);
+
+  // Descriptions are server-rendered MDX passed through the island's slot;
+  // reveal the one matching the selected work.
+  useEffect(() => {
+    const nodes = descriptionsRef.current?.querySelectorAll<HTMLElement>("[data-work-id]");
+    nodes?.forEach((node) => {
+      node.hidden = node.dataset.workId !== work.id;
+    });
+  }, [work.id]);
+
   return (
     <div className="flex-1 lg:max-w-[45%]">
       <div className="space-y-4">
@@ -28,8 +39,11 @@ export function WorkDetails({ work, showPinHint, showLinkHint }: WorkDetailsProp
           </div>
         </dl>
 
-        <div className="[&_a]:bg-muted [&_a]:text-muted-foreground [&_a]:px-1 [&_a]:font-medium">
-          <RichText content={work.description.json.content} />
+        <div
+          ref={descriptionsRef}
+          className="[&_a]:bg-muted [&_a]:text-muted-foreground [&_a]:px-1 [&_a]:font-medium"
+        >
+          {children}
         </div>
 
         <p className="text-muted-foreground text-sm">
