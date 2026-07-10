@@ -20,6 +20,7 @@ import { cn } from "~/lib/utils";
 import BlurImage from "~/components/common/blur-image.astro";
 import { generateLQIPFromPath } from "~/lib/lqip";
 import path from "path";
+import Link from "~/components/common/link.astro";
 
 const assetsDir = path.join(process.cwd(), "src/assets/home");
 
@@ -28,7 +29,7 @@ const images = await Promise.all([
     src: back2back,
     src400: back2back400,
     src800: back2back800,
-    alt: "back2back",
+    alt: "laptop running a code editor on a white desk beside a printed system architecture diagram",
     lqip: await generateLQIPFromPath(path.join(assetsDir, "back2back.webp"), {
       grayscale: true,
     }),
@@ -37,7 +38,7 @@ const images = await Promise.all([
     src: perspective,
     src400: perspective400,
     src800: perspective800,
-    alt: "perspective",
+    alt: "an upside-down sign reading 'perspective!' hung on a cafe pillar",
     lqip: await generateLQIPFromPath(path.join(assetsDir, "perspective.webp"), {
       grayscale: true,
     }),
@@ -46,7 +47,7 @@ const images = await Promise.all([
     src: ramen,
     src400: ramen400,
     src800: ramen800,
-    alt: "ramen",
+    alt: "holding a cup of instant noodles with a wooden fork, sitting on a sidewalk",
     lqip: await generateLQIPFromPath(path.join(assetsDir, "ramen.webp"), {
       grayscale: true,
     }),
@@ -55,7 +56,7 @@ const images = await Promise.all([
     src: city,
     src400: city400,
     src800: city800,
-    alt: "city",
+    alt: "dusk sky over a city road, streetlights coming on and a scooter passing by",
     lqip: await generateLQIPFromPath(path.join(assetsDir, "city.webp"), {
       grayscale: true,
     }),
@@ -110,7 +111,7 @@ const age =
             </p>
             <p>
               outside tech, I’ve always had this itch for creative stuff &mdash;
-              i used to post anime edits, played around with graphics, even
+              i used to post anime edits and <Link href="/archive">cover art</Link> and even
               tried music production for a bit.
             </p>
           </div>

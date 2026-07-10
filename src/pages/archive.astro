@@ -26,62 +26,62 @@ const assetsDir = path.join(process.cwd(), "src/assets/gfx");
 const images = await Promise.all([
   {
     src: LOVE,
-    alt: "LOVE",
+    alt: "halftone orange-on-black poster titled LOVE — a couple about to kiss beside pressed carnations, captioned 'i just enjoy you <3'",
     lqip: await generateLQIPFromPath(path.join(assetsDir, "LOVE.webp")),
   },
   {
     src: MILLENIUM,
-    alt: "MILLENIUM",
+    alt: "y2k poster titled MILLENIUM — man in chrome sunglasses and a cross chain under acid-yellow graffiti type",
     lqip: await generateLQIPFromPath(path.join(assetsDir, "MILLENIUM.webp")),
   },
   {
     src: TAKEOVER,
-    alt: "TAKEOVER",
+    alt: "pink 'y2k takeover' poster with warped chrome CULTURE type and a sepia photo of a hand reaching at the camera",
     lqip: await generateLQIPFromPath(path.join(assetsDir, "TAKEOVER.webp")),
   },
   {
     src: freedom,
-    alt: "freedom",
+    alt: "black grunge poster reading 'embrace your freedom.' — a monarch butterfly whose body is a bullet",
     lqip: await generateLQIPFromPath(path.join(assetsDir, "freedom.webp")),
   },
   {
     src: illicit,
-    alt: "illicit",
+    alt: "grainy black-and-white poster titled ILLICIT with gothic 'durag activity' type and a blurred fisheye portrait",
     lqip: await generateLQIPFromPath(path.join(assetsDir, "illicit.webp")),
   },
   {
     src: insanity,
-    alt: "insanity",
+    alt: "red-on-grey poster repeating INSANITY over a halftone still of a man holding a revolver to his head",
     lqip: await generateLQIPFromPath(path.join(assetsDir, "insanity.webp")),
   },
   {
     src: intongues,
-    alt: "intongues",
+    alt: "reimagined cover for joji's 'in tongues' EP — smoky figure on burnt orange with a serif tracklist",
     lqip: await generateLQIPFromPath(path.join(assetsDir, "intongues.webp")),
   },
   {
     src: ericreprid,
-    alt: "ericreprid",
+    alt: "cover art for eric reprid's '3ternity' — blurred portrait under dripping chrome metal type",
     lqip: await generateLQIPFromPath(path.join(assetsDir, "ericreprid.webp")),
   },
   {
     src: kendrick,
-    alt: "kendrick",
+    alt: "black-and-white kendrick lamar poster with hand-drawn type, butterflies and 'good kid maad city' scrawls",
     lqip: await generateLQIPFromPath(path.join(assetsDir, "kendrick.webp")),
   },
   {
     src: redemption,
-    alt: "redemption",
+    alt: "poster titled REDEMPTION in chromatic warped type — a glowing blue-green hand outstretched on black",
     lqip: await generateLQIPFromPath(path.join(assetsDir, "redemption.webp")),
   },
   {
     src: wanted,
-    alt: "wanted",
+    alt: "mint-green y2k WANTED poster styled as a bounty card, 'offence: promoted y2k, bounty: $2k'",
     lqip: await generateLQIPFromPath(path.join(assetsDir, "wanted.webp")),
   },
   {
     src: zillionaire,
-    alt: "zillionaire",
+    alt: "pink monochrome poster 'zillionaire — we create culture', a woman covering her face with ringed, long-nailed fingers",
     lqip: await generateLQIPFromPath(path.join(assetsDir, "zillionaire.webp")),
   },
 ]);
@@ -90,7 +90,7 @@ const images = await Promise.all([
 <Layout
   content={{
     title: "archive | advtszn",
-    description: "a wall of graphics and artwork from back in the day",
+    description: "cover art and posters from my prznse.dzn era",
   }}
 >
   <main>
@@ -99,7 +99,8 @@ const images = await Promise.all([
         <div class="mb-8 space-y-2">
           <h1 class="font-serif text-4xl italic md:text-6xl">archive</h1>
           <p class="text-muted-foreground text-lg">
-            artwork and graphics from back when i gave graphic design a shot
+            cover art and posters from my prznse.dzn era &mdash; back when i gave
+            graphic design a shot
           </p>
         </div>
 
