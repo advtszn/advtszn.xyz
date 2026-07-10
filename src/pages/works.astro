@@ -1,27 +1,18 @@
 ---
-export const prerender = true;
-
 import Container from "~/components/common/container.astro";
 import Layout from "~/layouts/Layout.astro";
-import { basehub } from "~/lib/basehub";
+import { getCollection, render } from "astro:content";
 import WorksList from "~/components/works/works-list";
-import type { TWork } from "~/types/works.types";
 
-const {
-  works: { items: works },
-} = await basehub.query({
-  works: {
-    __args: { orderBy: "date__DESC" },
-    items: {
-      _title: true,
-      role: true,
-      description: { json: { content: true } },
-      date: true,
-      url: true,
-      _id: true,
-    },
-  },
-});
+const entries = (await getCollection("works")).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+
+const works = entries.map(({ id, data }) => ({ id, ...data }));
+
+const descriptions = await Promise.all(
+  entries.map(async (entry) => ({ id: entry.id, Content: (await render(entry)).Content })),
+);
 ---
 
 <Layout
@@ -40,7 +31,15 @@ const {
             am/was affiliated with so far
           </p>
         </div>
-        <WorksList works={works as TWork[]} client:load />
+        <WorksList works={works} client:load>
+          {
+            descriptions.map(({ id, Content }) => (
+              <div data-work-id={id} hidden>
+                <Content />
+              </div>
+            ))
+          }
+        </WorksList>
       </div>
     </Container>
   </main>

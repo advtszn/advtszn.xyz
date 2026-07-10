@@ -30,7 +30,11 @@ const {
 } = Astro.props;
 ---
 
-<div class={cn("blur-image-wrapper relative overflow-hidden", className)} data-full={dataFull}>
+<div
+  class={cn("blur-image-wrapper relative overflow-hidden", className)}
+  data-full={dataFull}
+  data-lightbox={dataFull ? "" : undefined}
+>
   <img
     src={lqip}
     alt=""

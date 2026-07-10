@@ -1,6 +1,5 @@
 import type { APIRoute } from "astro";
-
-import { basehub } from "~/lib/basehub";
+import { type CollectionEntry, getCollection } from "astro:content";
 
 const staticPaths = [
   "/",
@@ -24,20 +23,12 @@ export const GET: APIRoute = async ({ site }) => {
     return new Response("Site URL is not configured", { status: 500 });
   }
 
-  const {
-    writings: { items: writings },
-  } = await basehub.query({
-    writings: {
-      __args: {
-        filter: { status: { includes: "published" } },
-      },
-      items: {
-        _slug: true,
-      },
-    },
-  });
+  const writings: CollectionEntry<"writings">[] = await getCollection(
+    "writings",
+    (entry: CollectionEntry<"writings">) => entry.data.status === "published",
+  );
 
-  const writingPaths = writings.map(({ _slug }) => `/writings/${_slug}/`);
+  const writingPaths = writings.map(({ id }) => `/writings/${id}/`);
   const urls = [...staticPaths, ...writingPaths].map((pathname) => toUrlEntry(site, pathname));
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>
@@ -48,7 +39,6 @@ ${urls.join("\n")}
   return new Response(body, {
     headers: {
       "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
     },
   });
 };

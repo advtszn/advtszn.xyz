@@ -1,5 +1,4 @@
 ---
-export const prerender = true;
 
 import Container from "~/components/common/container.astro";
 import Layout from "../layouts/Layout.astro";
@@ -151,44 +150,7 @@ const age =
           }
         </div>
       </div>
-
-      <div
-        id="previewModal"
-        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80"
-      >
-        <img
-          id="previewImg"
-          src=""
-          alt="full preview"
-          class="max-h-[90%] max-w-[90%] rounded-lg shadow-lg"
-        />
-      </div>
     </Container>
   </main>
 </Layout>
 
-<script>
-  document.addEventListener("astro:page-load", () => {
-    const modal = document.getElementById("previewModal");
-    const previewImg = document.getElementById(
-      "previewImg",
-    ) as HTMLImageElement;
-    const images = document.querySelectorAll("#masonry .blur-image-wrapper");
-
-    images.forEach((img) => {
-      img.addEventListener("click", () => {
-        const fullSrc = img.getAttribute("data-full");
-        if (fullSrc && modal && previewImg) {
-          previewImg.src = fullSrc;
-          modal.classList.remove("hidden");
-          modal.classList.add("flex");
-        }
-      });
-    });
-
-    modal?.addEventListener("click", () => {
-      modal.classList.add("hidden");
-      modal.classList.remove("flex");
-    });
-  });
-</script>

@@ -2,22 +2,12 @@
 import Container from "~/components/common/container.astro";
 import Layout from "~/layouts/Layout.astro";
 import Link from "~/components/common/link.astro";
-import { basehub } from "~/lib/basehub";
+import { getCollection } from "astro:content";
 import { cn } from "~/lib/utils";
 
-const {
-  writings: { items: writings },
-} = await basehub.query({
-  writings: {
-    __args: { orderBy: "_sys_createdAt__DESC" },
-    items: {
-      _id: true,
-      _slug: true,
-      _title: true,
-      status: true,
-    },
-  },
-});
+const writings = (await getCollection("writings")).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
 ---
 
 <Layout
@@ -39,7 +29,7 @@ const {
         </p>
         <ol class="list-inside list-decimal space-y-1.5">
           {
-            writings.map(({ _slug, _title, status }) => (
+            writings.map(({ id, data: { title, status } }) => (
               <li
                 class={cn("pl-2 text-lg font-light", {
                   "text-muted-foreground": status === "draft",
@@ -48,13 +38,13 @@ const {
                 {status === "published" ? (
                   <a
                     class="underline underline-offset-4"
-                    href={`/writings/${_slug}`}
+                    href={`/writings/${id}`}
                   >
-                    {_title}
+                    {title}
                   </a>
                 ) : (
                   <p class="inline underline underline-offset-4">
-                    {_title} (coming soon)
+                    {title} (coming soon)
                   </p>
                 )}
               </li>

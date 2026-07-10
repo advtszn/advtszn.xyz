@@ -5,6 +5,7 @@ import "@fontsource/instrument-serif/400-italic.css";
 import '@fontsource-variable/inter';
 import '@fontsource-variable/inter/opsz-italic.css';
 import Footer from "~/components/common/footer.astro";
+import Lightbox from "~/components/common/lightbox.astro";
 import Sidebar from "~/components/common/sidebar.astro";
 import { ClientRouter } from "astro:transitions";
 import Navbar from "~/components/common/navbar.astro";
@@ -56,12 +57,6 @@ const {
 
     <link rel="canonical" href={Astro.site} />
 
-    <!-- DNS prefetch for external resources -->
-    <link rel="dns-prefetch" href="https://api.spotify.com" />
-    <link rel="preconnect" href="https://api.spotify.com" crossorigin />
-
-    <script src="https://cdn.visitors.now/v.js" data-token="c2c17314-5c45-41a4-a1ec-7fd06b09b143"></script>
-
     <ClientRouter />
   </head>
   <body class="h-screen">
@@ -71,36 +66,6 @@ const {
       <slot />
     </div>
     <Footer />
-
-    <script>
-      function setupModal() {
-        const modal = document.getElementById("previewModal") as HTMLDivElement;
-        const previewImg = document.getElementById(
-          "previewImg",
-        ) as HTMLImageElement;
-
-        document
-          .querySelectorAll<HTMLImageElement>("#masonry img")
-          .forEach((img) => {
-            img.addEventListener("click", () => {
-              const fullSrc = img.dataset.full;
-              if (fullSrc) {
-                previewImg.src = fullSrc;
-                modal.classList.remove("hidden");
-                modal.classList.add("flex");
-              }
-            });
-          });
-
-        modal.addEventListener("click", () => {
-          modal.classList.add("hidden");
-          modal.classList.remove("flex");
-          previewImg.src = "";
-        });
-      }
-
-      setupModal();
-      document.addEventListener("astro:page-load", setupModal);
-    </script>
+    <Lightbox />
   </body>
 </html>

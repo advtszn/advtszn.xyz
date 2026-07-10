@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 interface Identifiable {
-  _id: string;
+  id: string;
 }
 
 interface UseWorkSelectionOptions {
@@ -53,7 +53,7 @@ export function useWorkSelection<T extends Identifiable>(options: UseWorkSelecti
 
   const select = useCallback(
     (item: T, hasLink: boolean): { shouldNavigate: boolean } => {
-      const isCurrentlyLocked = lockedItem?._id === item._id;
+      const isCurrentlyLocked = lockedItem?.id === item.id;
 
       if (isCurrentlyLocked && hasLink) {
         clear();
@@ -83,7 +83,7 @@ export function useWorkSelection<T extends Identifiable>(options: UseWorkSelecti
     containerRef,
     displayedItem,
     isLocked: lockedItem !== null,
-    isItemActive: (item: T) => displayedItem?._id === item._id,
+    isItemActive: (item: T) => displayedItem?.id === item.id,
     select,
     hover,
     unhover,

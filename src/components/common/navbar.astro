@@ -1,6 +1,8 @@
 ---
-import { Home } from "lucide-react";
-import { Lotus, Cog, Y2K } from "./icons";
+import { Home } from "lucide-astro";
+import Cog from "./icons/cog.astro";
+import Lotus from "./icons/lotus.astro";
+import Y2K from "./icons/y2k.astro";
 import { cn } from "~/lib/utils";
 
 const { pathname } = Astro.url;
@@ -39,7 +41,7 @@ const links = [
             )}
           >
             <a href={href} class="flex items-center gap-2">
-              <Icon className="h-5 w-5" />
+              <Icon class="h-5 w-5" />
               {label}
             </a>
           </li>

@@ -8,41 +8,43 @@ This project uses **Bun** as the package manager.
 
 ```bash
 bun install          # Install dependencies
-bun dev              # Dev server at localhost:4321 (runs basehub dev & astro dev)
-bun build            # Production build (basehub codegen + astro build)
+bun dev              # Dev server at localhost:4321
+bun build            # Production build (fully static output in dist/)
 bun preview          # Preview production build
 bun astro [command]  # Astro CLI commands
 ```
 
 ## Architecture Overview
 
-Personal portfolio site: **Astro 5** (SSR) + **React** + **TailwindCSS v4** + **BaseHub CMS**, deployed to **Vercel**.
+Personal portfolio site: **Astro 7** (fully static) + **React islands** + **TailwindCSS v4** + **MDX content collections**, deployed to **Vercel** as static files (no adapter, no server routes).
 
 ### Key Patterns
 
-**Path Aliases**: Use `~/` for `src/` imports (e.g., `~/components/common/Navbar.astro`).
+**Path Aliases**: Use `~/` for `src/` imports (e.g., `~/components/common/navbar.astro`).
 
-**BaseHub CMS**:
-- GraphQL-like queries fetch content from BaseHub
-- Types auto-generated in `basehub-types.d.ts` (regenerate with `basehub` command)
-- Client in `src/lib/basehub.ts` handles env-specific token loading
-- Used for writings/blog with dynamic routing (`/writings/[slug].astro`)
+**Content Collections** (`src/content.config.ts`):
+- `writings` — MDX files in `src/content/writings/` (frontmatter: title, description, date, status, thumbnail, thumbnailAlt; images live in `src/content/writings/images/`). Rendered at `/writings/[slug]` via `getStaticPaths`.
+- `works` — MDX files in `src/content/works/` (frontmatter: title, role, date, url; the body is the description). The works page renders each description server-side and passes them as hidden slot children into the `WorksList` React island, which toggles visibility client-side.
+- `links` — `src/content/links.json` via the `file()` loader (archive page).
 
 **Component Architecture**:
 - `.astro` components for static/server content
 - `.tsx` React islands for client interactivity (use `client:load` directive)
-- `Layout.astro` wraps all pages with navbar/sidebar/footer
+- `Layout.astro` wraps all pages with navbar/sidebar/footer and a global `lightbox.astro` (`<dialog>`-based; trigger with a `data-lightbox` attribute, optional `data-full` for the full-size src)
 - `<ClientRouter />` enables View Transitions for SPA-like navigation
+
+**Icons**:
+- `.astro` files use `lucide-astro` (and custom SVG icons in `src/components/common/icons/`)
+- `.tsx` React islands use `lucide-react`
 
 **Styling**:
 - TailwindCSS v4 with OKLCH color tokens in `src/styles/global.css`
 - Dark theme only (no light mode)
 - Use `cn()` from `~/lib/utils` for conditional classnames
-- Custom CSS: masonry layouts (`#masonry`), marquee animation, `.richtext` for CMS content
+- Custom CSS: masonry layouts (`#masonry`), marquee animation, `.mdx` class for rendered MDX content
 
 **Image Handling**:
 - Use Astro's `astro:assets` for local images (auto-optimizes to WebP)
-- BaseHub images served via their CDN
+- `BlurImage` component adds LQIP placeholders (generated at build via `~/lib/lqip`)
 
-**Environment Variables**:
-- `BASEHUB_TOKEN` required for CMS access (in `.env` for dev)
+**No runtime dependencies**: there is no CMS, no API routes, and no required environment variables — everything is resolved at build time.

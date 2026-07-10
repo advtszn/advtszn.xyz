@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!**/*.astro", "!basehub-types.d.ts"]
+    "includes": ["**", "!**/*.astro"]
   },
   "formatter": {
     "enabled": true,

@@ -1,10 +1,18 @@
+import type { CollectionEntry } from "astro:content";
 import { useMediaQuery } from "usehooks-ts";
-import type { TWork } from "~/types/works.types";
 import { useWorkSelection } from "./use-work-selection";
 import { WorkDetails } from "./work-details";
 import { WorkItem } from "./work-item";
 
-export default function WorksList({ works }: { works: TWork[] }) {
+export type TWork = CollectionEntry<"works">["data"] & { id: string };
+
+export default function WorksList({
+  works,
+  children,
+}: {
+  works: TWork[];
+  children: React.ReactNode;
+}) {
   const isMobile = useMediaQuery("(max-width: 1023px)");
   const selection = useWorkSelection<TWork>();
 
@@ -21,8 +29,8 @@ export default function WorksList({ works }: { works: TWork[] }) {
       <ul className="flex flex-1 flex-col gap-y-1.5 lg:max-w-[45%]">
         {works.map((work) => (
           <WorkItem
-            key={work._id}
-            title={work._title}
+            key={work.id}
+            title={work.title}
             url={work.url}
             date={work.date}
             isActive={selection.isItemActive(work)}
@@ -38,7 +46,9 @@ export default function WorksList({ works }: { works: TWork[] }) {
           work={selection.displayedItem}
           showPinHint={!isMobile && !selection.isLocked}
           showLinkHint={selection.isLocked && !!selection.displayedItem.url}
-        />
+        >
+          {children}
+        </WorkDetails>
       )}
     </div>
   );

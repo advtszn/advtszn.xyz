@@ -1,24 +1,11 @@
 ---
-export const prerender = true;
-
 import Container from "~/components/common/container.astro";
 import Layout from "~/layouts/Layout.astro";
-import { basehub } from "~/lib/basehub";
+import { getCollection } from "astro:content";
 import Link from "~/components/common/link.astro";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-astro";
 
-const {
-  archive: {
-    links: { items: links },
-  },
-} = await basehub.query({
-  archive: {
-    links: {
-      __args: { orderBy: "_sys_createdAt__DESC" },
-      items: { _id: true, _title: true, link: true },
-    },
-  },
-});
+const links = await getCollection("links");
 
 const miscLinks = [{ title: "graphics", href: "/archive/gfx" }];
 ---
@@ -48,14 +35,14 @@ const miscLinks = [{ title: "graphics", href: "/archive/gfx" }];
             </p>
             <ol class="list-inside list-decimal space-y-1.5">
               {
-                links.map(({ link, _id, _title }) => (
+                links.map(({ data: { link, title } }) => (
                   <li class="text-lg font-light">
                     <a
                       target="_blank"
                       class="underline underline-offset-4"
                       href={link}
                     >
-                      {_title}
+                      {title}
                     </a>
                   </li>
                 ))
@@ -78,8 +65,8 @@ const miscLinks = [{ title: "graphics", href: "/archive/gfx" }];
                       href={href}
                     >
                       <ArrowRight
-                        className="mr-1.5 group-hover:mr-2 transition-all"
-                        strokeWidth={3}
+                        class="mr-1.5 group-hover:mr-2 transition-all"
+                        stroke-width={3}
                         size={16}
                       />
                       {title}
