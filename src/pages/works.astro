@@ -3,6 +3,7 @@ import Container from "~/components/common/container.astro";
 import Layout from "~/layouts/Layout.astro";
 import { getCollection, render } from "astro:content";
 import WorksList from "~/components/works/works-list";
+import Link from "~/components/common/link.astro"
 
 const entries = (await getCollection("works")).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
@@ -25,21 +26,29 @@ const descriptions = await Promise.all(
     <Container>
       <div class="space-y-4">
         <div class="space-y-4 lg:max-w-[45%]">
-          <h1 class="font-satoshi text-4xl font-medium">works</h1>
+          <h1 class="font-serif text-4xl italic md:text-6xl">works</h1>
           <p class="text-muted-foreground text-lg">
             the list includes all the startups, products and experiments i
-            am/was affiliated with so far
+            am/was affiliated with so far. for a visual showcase of selected
+            works with case studies, check out <Link
+              target="_blank"
+              href="https://works.advtszn.xyz"
+              
+              >works.advtszn.xyz</Link
+            >
           </p>
         </div>
-        <WorksList works={works} client:load>
-          {
-            descriptions.map(({ id, Content }) => (
-              <div data-work-id={id} hidden>
-                <Content />
-              </div>
-            ))
-          }
-        </WorksList>
+        <div class="py-6">
+          <WorksList works={works} client:load>
+            {
+              descriptions.map(({ id, Content }) => (
+                <div data-work-id={id} hidden>
+                  <Content />
+                </div>
+              ))
+            }
+          </WorksList>
+        </div>
       </div>
     </Container>
   </main>
