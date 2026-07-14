@@ -1,0 +1,32 @@
+name: Compile resume
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "resume/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup tectonic
+        uses: wtfjoke/setup-tectonic@v3
+
+      - name: Compile resume.tex
+        run: tectonic resume/resume.tex -o public/
+
+      - name: Commit PDF
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/resume.pdf
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "chore: compile resume.pdf"
+          git push
