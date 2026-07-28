@@ -22,10 +22,10 @@ const writings = (await getCollection("writings")).sort(
           these are raw dumps of my thoughts and theses, you can text me about
           them
         </p>
-        <ol class="space-y-1.5">
+        <ol class="space-y-2.5">
           {
             writings.map(({ id, data: { title } }) => (
-              <li class="pl-2 text-lg font-light">
+              <li class="pl-1.5 text-lg font-light">
                 <a class="underline underline-offset-4" href={`/writings/${id}`}>
                   {title}
                 </a>

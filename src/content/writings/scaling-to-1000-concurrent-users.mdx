@@ -28,7 +28,7 @@ i pointed k6 at the staging API with a load profile built to test endurance, not
 
 more than half the requests failed, and this run had by far the most failures of the whole project. but they weren't the 500s or 503s i expected. 90.6% of them were EOFs, which is what sent me down the rabbit hole.
 
-an EOF error is the network telling you "i opened a connection, and the other end hung up before saying anything", it means our application code never ran. something was killing connections *before* they reached Express. so the first bottleneck wasn't in our code at all, and no amount of query tuning would have touched it.
+an EOF error is the network telling you "i opened a connection, and the other end hung up before saying anything", it means our application code never ran. something was killing connections *before* they reached Express.
 
 the k6 lifecycle breakdown pointed at two separate problems:
 
@@ -37,7 +37,7 @@ the k6 lifecycle breakdown pointed at two separate problems:
 | blocked (waiting for a connection slot) | 1,092 ms |
 | waiting / TTFB (server processing) | 7,654 ms |
 
-`blocked` over a second meant requests were queuing just to get a connection. a 7.6s TTFB meant the requests that *did* get through hit slow application logic. one was an infrastructure problem, one was a database problem, and i had to resist the urge to fix them in the wrong order.
+`blocked` over a second meant requests were queuing just to get a connection. a 7.6s TTFB meant the requests that *did* get through hit slow application logic. one was an infrastructure problem, one was a database problem.
 
 # fix 1: the indexes that were quietly doing full scans
 
@@ -58,26 +58,15 @@ there was no compound index covering both the `deletedAt` filter and the `create
 
 i added four compound indexes, all with `partialFilterExpression: { deletedAt: null }` so the index only stores non-deleted documents. since every query in the codebase filters `deletedAt: null`, the index stays fully covering but smaller and cheaper to maintain.
 
-two mistakes i caught before they shipped, both worth stating because they are easy to get backwards:
-
-1. i almost deleted the `{ slug: 1, type: 1 }` unique index to "clean up." that index enforces a business rule (no duplicate slugs per content type). removing it would have silently allowed data corruption. constraint indexes and performance indexes are not interchangeable.
-2. my first pass marked the new compound indexes `unique: true`. a unique index on `{ type, status, createdAt }` means two articles published in the same millisecond would fail to insert. these are query indexes, not constraints.
-
 # fix 2: one idle core
 
 Node is single-threaded. on a 2-core box, one core was doing everything and the other sat idle. i ran the API under pm2 cluster mode with 2 workers, one per core.
 
 ## run 2: the improvement i couldn't see
 
-| Metric | Run 1 | Run 2 |
-| --- | --- | --- |
-| Success rate | 54.82% | 74.11% |
-| Transport EOF | 14,751 | 7,855 |
-| p95 latency | 22,221 ms | 21,758 ms |
+success climbed 19 points to 74.11% and EOFs nearly halved (14,751 to 7,855), but p95 barely moved. worse, TTFB went *up*, from 7.6s to 8.5s.
 
-success climbed 19 points and EOFs nearly halved, but p95 barely moved. worse, TTFB went *up*, from 7.6s to 8.5s.
-
-that scared me until i understood it. the slowest requests in run 1 were dying as EOF before k6 could measure them. now they survived, completed, and got counted, which dragged the average up. the indexes had made individual queries faster, but the connection bottleneck was still masking it. i was measuring a problem i hadn't fixed yet.
+the slowest requests in run 1 were dying as EOF before k6 could measure them. now they survived, completed, and got counted, which dragged the average up. the indexes had made individual queries faster, but the connection bottleneck was still masking it.
 
 # fix 3: the OS was the ceiling all along
 
@@ -134,80 +123,59 @@ what i deliberately did *not* cache: per-user state like `isFollowed`. that woul
 
 ## run 4: throughput doubled
 
-| Metric | Run 3 | Run 4 |
-| --- | --- | --- |
-| Avg latency | 13,426 ms | 3,329 ms (-75%) |
-| p95 latency | 24,794 ms | 15,293 ms (-38%) |
-| Request rate | 113 req/s | 223 req/s (+96%) |
+average latency dropped 75% (13,426ms to 3,329ms) and throughput nearly doubled to 223 req/s. but p95 was still 15s against a 3s target, and the per-endpoint breakdown showed why: the six slowest endpoints were all writes. you can't cache a write.
 
-average latency dropped 75% and throughput nearly doubled. but p95 was still 15s against a 3s target, and the per-endpoint breakdown showed why: the six slowest endpoints were all writes. you can't cache a write.
+# fix 5: scaling up the workers
 
-# fix 5: more workers than cores (this was correct, briefly)
+> this backfired later
 
 CPU was still under 40%. the workload was I/O-bound, spending most of its time waiting on MongoDB over the network, so the cores sat idle during those waits. i doubled pm2 workers from 2 to 4. running 4 processes on 2 cores sounds wrong, but while one worker waits on a database response, another can use the idle CPU. concurrency past the core count *hides* latency when the work is waiting rather than computing.
 
 ## run 5: the biggest single jump
 
-| Metric | Run 4 | Run 5 |
-| --- | --- | --- |
-| p95 latency | 15,293 ms | 6,857 ms (-55%) |
-| Median | 468 ms | 135 ms |
-| Request rate | 223 req/s | 467 req/s |
-
-throughput doubled again. median latency fell to 135ms, so most requests were now genuinely fast, and the pain was entirely in the write-heavy tail. remember this fix. it comes back.
+throughput doubled again to 467 req/s and p95 fell 55% to 6,857ms. median latency dropped to 135ms, so most requests were now genuinely fast, and the pain was entirely in the write-heavy tail. remember this fix. it comes back.
 
 # fix 6 and 7: killing the write tail
 
 two rounds of work went after the writes, which were now the entire problem.
 
-**assembled response caching and denormalization.** i stopped caching entities and started caching final API responses (leaderboard, article detail), so a cache hit costs zero DB queries instead of one-plus-assembly. community pages were recomputing article and quiz counts on every request via `countDocuments`, so i denormalized those counts onto the community document, updated fire-and-forget on every content write, with a reconciliation job as the safety net for drift.
+**assembled response caching and denormalization.** i started caching final API responses for a few select endpoints (leaderboard, article detail etc.), so a cache hit costs zero DB queries instead of one-plus-assembly. community pages were recomputing article and quiz counts on every request via `countDocuments`, so i denormalized those counts as a subdoc.
 
-**write deferral, read replicas, and query parallelization.** the key insight, again from our CTO: a user who likes an article doesn't need to wait for the like *count* to increment. the frontend already does optimistic updates. so i moved engagement counters and denormalized adjustments into a BullMQ background queue, turning synchronous 3-step writes into effectively 1-step writes. i set `readPreference: 'secondaryPreferred'` so reads hit replica set secondaries and the primary is reserved for writes and auth (session and OTP lookups override back to primary, since a stale read there actually breaks things). and i wrapped every `find` + `countDocuments` pair in `Promise.all`, since they are independent and were running sequentially for no reason.
+**deferred writes.** a user who likes an article doesn't need to wait for the like *count* to increment. the frontend already does optimistic updates. so i moved engagement counters and denormalized adjustments into a BullMQ background queue, turning synchronous 3-step writes into effectively 1-step writes.
+
+**read replicas.** an Atlas cluster is three instances by default: one primary and two secondaries. writes only go to the primary, which then replicates to the secondaries *asynchronously*, so a secondary is a full copy of the data that trails the primary by anywhere from milliseconds to seconds. the secondaries aren't special read-tuned hardware, they're just identical nodes that normally sit idle taking replication traffic. so by default all my reads *and* writes were hammering a single node while two others did nothing.
+
+i set `readPreference: 'secondaryPreferred'` to fan reads out across the secondaries and reserve the primary for writes. the asynchronous part is the catch so session and OTP lookups were force read from primary
 
 ## run 7: all four thresholds green
 
-| Write endpoint | Run 6 avg | Run 7 avg |
-| --- | --- | --- |
-| Like | 4,723 ms | 1,212 ms (-74%) |
-| Add comment | 4,811 ms | 1,139 ms (-76%) |
-| Unfollow | 4,188 ms | 1,552 ms (-63%) |
-
-write latencies fell 56-76%. p95 landed at 2,846ms, 154ms under the 3s target, and for the first time every threshold passed. i could have stopped here. i'm glad i didn't, because the next fix taught me the most.
+write latencies fell 56-76%: a like went from 4,723ms to 1,212ms, adding a comment from 4,811ms to 1,139ms. p95 landed at 2,846ms, 154ms under the 3s target, and for the first time every threshold passed. i could have stopped here. i'm glad i didn't, because the next fix taught me the most.
 
 # fix 8: the last 700ms came from deleting processes
 
 this is the one fix in the whole journey that *reverses* an earlier one. fix 5 doubled the API workers from 2 to 4 and it was the single biggest win at the time. here i cut them back to 2 and got the biggest latency drop of the entire project. both were correct, because the workload underneath had changed.
 
-by this point the box was running, on 2 vCPUs: 4 API workers (from fix 5), 2 background job workers (both cluster mode at `instances: "max"`), plus a web and a dashboard process. that is roughly 8 Node processes fighting over 2 cores. Node is single-threaded per process, so when busy processes outnumber cores, they don't run in parallel. they context-switch, each getting yanked off the CPU mid-work, and server-side processing time balloons even though nothing is wrong with the database or the network.
+by this point the box was running, on 2 vCPUs: 4 API workers (from fix 5), 2 background job workers (cluster mode at `instances: "max"`), plus a web and an internal dashboard (CMS) process. that is roughly 8 Node processes fighting over 2 cores. Node is single-threaded per process, so when busy processes outnumber cores, they don't run in parallel. they context-switch, each getting yanked off the CPU mid-work, and server-side processing time balloons even though nothing is wrong with the database or the network.
 
-p95 was stuck around 2.5s of pure server-side `waiting`, and no amount of caching would move it. so i tried something crude: mid-test, i killed the two background worker processes.
+i scaled the API back to 2 workers (one per core), moved the BullMQ processor to a single fork process (a queue consumer gets its parallelism from its `concurrency` setting, not from process count).
 
 latency dropped immediately, and throughput went *up* at the same time. fewer processes, more work done. that is the unmistakable signature of CPU oversubscription: remove contenders for the CPU and the survivors actually get to run, so latency and throughput improve together. under genuine overload, cutting capacity makes both worse. i saw the opposite, which told me the box was oversubscribed, not overloaded.
 
 here is the lesson i keep coming back to. **the caching work didn't just make requests faster. it moved the bottleneck from I/O to CPU, which inverted the optimal number of processes.**
 
-back at fix 5, every request sat waiting on a slow un-indexed database, so the CPU was idle during those waits and piling on extra processes was free lunch. after indexes and caching, requests are served from Redis or cheap indexed lookups. there is almost no waiting left. the time that remains is real CPU work: TLS, JSON serialization, the event loop. running 4 processes on 2 cores stopped hiding latency and started creating it. the exact same setting flipped from asset to liability.
+back at fix 5, every request sat waiting on an I/O operation (network calls to redis/mongodb), so the CPU was idle during those waits. after indexes and caching, requests are served from Redis or cheap indexed lookups. there is almost no waiting left. the time that remains is real CPU work: TLS, JSON serialization, the event loop. running 4 processes on 2 cores stopped hiding latency and started creating it. the exact same setting flipped from asset to liability.
 
 > concurrency past your core count only helps while you're I/O-bound. every optimization that removes I/O wait pushes you toward CPU-bound, and toward *fewer* processes, not more.
 
 ![Same 2 cores, opposite optimum: while I/O-bound, ~8 processes overlap their waits and hide latency; once caching makes the work CPU-bound, 2 workers plus one fork win and p95 drops from 2846ms to 777ms](./images/scaling-cpu-oversubscription.png)
 
-so the 4-worker config was never fundamentally right. it was a workaround compensating for a slow database, and the moment i fixed the real cause, the workaround became the problem. i scaled the API back to 2 workers (one per core), moved the BullMQ processor to a single fork process (a queue consumer gets its parallelism from its `concurrency` setting, not from process count), and persisted both in `ecosystem.config.js` so they survive a deploy.
+so the 4-worker config was never fundamentally right. it was a workaround compensating for a slow database, and the moment i fixed the real cause, the workaround became the problem.
 
 ## run 8: sub-1s p95
 
-| Metric | Run 7 (4 workers) | Run 8 (2 + 1 fork) |
-| --- | --- | --- |
-| p95 latency | 2,846 ms | 777 ms (-73%) |
-| p99 latency (measured) | 5,676 ms | 3,714 ms |
-| Throughput | 570 req/s | 756 req/s |
-| Success rate | 99.93% | 100.00% |
-| Requests under 1s | — | 97.3% |
-| Total requests (5 min steady) | — | 307,615 |
+p95 crashed 73% to 777ms and throughput climbed to 756 req/s, both on the same 2-core box (full numbers in the summary below). the active CPU competitors on the latency path went from 6 cluster workers to 2, exactly matching the experiment. every one of the 307,615 requests over the five-minute steady window came back successful, and 97.3% of them landed in under a second.
 
-p95 crashed to 777ms and throughput climbed to 756 req/s, both on the same 2-core box. the active CPU competitors on the latency path went from 6 cluster workers to 2, exactly matching the experiment. every one of the 307,615 requests came back successful (15 non-fatal k6 hiccups, zero real failures), and 97.3% of them landed in under a second.
-
-one honest caveat i won't bury. that same run had a *measured* p99 of 3,714ms, which looks alarming next to a sub-1s p95. decomposing it, the entire gap is one ~15-second window where every endpoint froze in lockstep, no errors, no restart. that single stall owns the very tail of the distribution and nothing else does. exclude that one window and p99 drops to roughly 1,454ms. a box-wide freeze with no errors is the signature of a GC or swap event, and the likely cause is that every process launched with a 2GB heap ceiling, whose sum can exceed the box's RAM. right-sizing those heaps is the next thing on the list, not a per-endpoint tail to chase.
+that same run had a *measured* p99 of 3,714ms, and the entire gap over p95 is one ~15-second window where every endpoint froze in lockstep, no errors, no restart. exclude that window and p99 drops to ~1,454ms. a box-wide freeze with no errors is the signature of a GC or swap event, likely because every process launched with a 2GB heap ceiling whose sum can exceed the box's RAM. right-sizing those heaps is next on the list, not a per-endpoint tail to chase.
 
 # the full journey
 
