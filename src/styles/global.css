@@ -1,22 +1,34 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Ensure fonts don't block rendering */
+/* Self-hosted Satoshi (headings) */
 @font-face {
-  font-family: "Instrument Serif";
+  font-family: "Satoshi Variable";
+  src: url("/fonts/satoshi/Satoshi-Variable.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Inter Variable";
+  font-family: "Satoshi Variable";
+  src: url("/fonts/satoshi/Satoshi-VariableItalic.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Ensure fonts don't block rendering */
+@font-face {
+  font-family: "Instrument Sans";
   font-display: swap;
 }
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "Inter Variable", sans-serif;
-  --font-serif: "Instrument Serif", serif;
+  --font-sans: "Instrument Sans", sans-serif;
+  --font-heading: "Satoshi Variable", sans-serif;
   --font-satoshi: "Satoshi Variable", sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -154,15 +166,15 @@
 }
 
 .mdx h1 {
-  @apply text-foreground/90 mt-10 font-serif text-2xl font-bold md:text-5xl;
+  @apply text-foreground/90 mt-10 font-heading text-2xl font-medium md:text-3xl;
 }
 
 .mdx h2 {
-  @apply text-foreground/90 mt-10 font-serif text-2xl font-bold md:text-3xl;
+  @apply text-foreground/90 mt-10 font-heading text-xl font-medium md:text-2xl;
 }
 
 .mdx h3 {
-  @apply text-foreground/90 mt-10 font-serif text-2xl font-bold md:text-xl;
+  @apply text-foreground/90 mt-10 font-heading text-lg font-medium md:text-xl;
 }
 
 .mdx ul {
@@ -187,7 +199,7 @@
   max-height: 512px;
   height: auto;
   object-fit: contain;
-  @apply mx-auto my-12 rounded-md;
+  @apply mx-auto my-12 cursor-zoom-in rounded-md;
 }
 
 .mdx p {

@@ -19,15 +19,15 @@ const writings = (await getCollection("writings")).sort(
   <main>
     <Container>
       <div class="space-y-4 lg:max-w-[45%] lg:pl-4">
-        <h1 class="font-serif text-4xl italic md:text-6xl">writings</h1>
-        <p class="text-muted-foreground text-lg">
+        <h1 class="font-heading text-3xl font-medium md:text-5xl">writings</h1>
+        <p class="text-muted-foreground font-medium text-lg">
           these are raw dumps of my thoughts and theses, you can text me about
           them or subscribe to my <Link
             target="_blank"
             href="https://notesfromvoid.substack.com">substack</Link
           > to get notified everytime i post something
         </p>
-        <ol class="list-inside list-decimal space-y-1.5">
+        <ol class="space-y-1.5">
           {
             writings.map(({ id, data: { title, status } }) => (
               <li

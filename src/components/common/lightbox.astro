@@ -17,12 +17,15 @@ import { X } from "lucide-astro";
 
     if (!lightbox || !lightboxImg || !closeBtn) return;
 
-    document.querySelectorAll<HTMLElement>("[data-lightbox]").forEach((el) => {
+    document.querySelectorAll<HTMLElement>("[data-lightbox], .mdx img").forEach((el) => {
       el.addEventListener("click", () => {
         const src = el.dataset.full ?? (el as HTMLImageElement).src;
         if (!src) return;
         lightboxImg.src = src;
-        lightboxImg.alt = el.querySelector<HTMLImageElement>("img:not([aria-hidden])")?.alt ?? "";
+        lightboxImg.alt =
+          el.querySelector<HTMLImageElement>("img:not([aria-hidden])")?.alt ??
+          (el as HTMLImageElement).alt ??
+          "";
         lightbox.showModal();
       });
     });

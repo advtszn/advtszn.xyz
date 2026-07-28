@@ -1,13 +1,15 @@
 ---
 import Container from "~/components/common/container.astro";
 import Layout from "~/layouts/Layout.astro";
-import { Image } from "astro:assets";
 import { getCollection, render } from "astro:content";
 import Link from "~/components/common/link.astro";
 import { ArrowLeft } from "lucide-astro";
 
 export async function getStaticPaths() {
-  const writings = await getCollection("writings", ({ data }) => data.status === "published");
+  const writings = await getCollection(
+    "writings",
+    ({ data }) => data.status === "published",
+  );
 
   return writings.map((writing) => ({
     params: { slug: writing.id },
@@ -16,7 +18,11 @@ export async function getStaticPaths() {
 }
 
 const formatDate = (date: Date) =>
-  date.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
+  date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 
 const { writing } = Astro.props;
 const { Content } = await render(writing);
@@ -30,45 +36,23 @@ const { Content } = await render(writing);
 >
   <main>
     <Container>
-      <div class="space-y-4 lg:max-w-[60%] lg:pl-4">
-        <a href="/writings" class="text-muted-foreground flex items-center pt-2"
-          ><ArrowLeft size={16} class="mr-1.5" /> Go back to writings</a
+      <div class="space-y-6">
+        <a
+          href="/writings"
+          class="text-muted-foreground flex items-center pt-2 text-sm"
+          ><ArrowLeft size={16} class="mr-1.5" /> Back to writings</a
         >
-        <h1 class="font-serif text-4xl italic md:text-6xl">{writing.data.title}</h1>
-        <div class="space-y-4">
-          <Image
-            src={writing.data.thumbnail}
-            alt={writing.data.thumbnailAlt}
-            class="h-full w-full object-cover"
-            loading="eager"
-          />
-          <div class="border-y border-dashed p-2">
-            <div
-              class="text-muted-foreground items-baseline-end flex justify-between"
-            >
-              <p class="">
-                {formatDate(writing.data.date)}
-              </p>
-              <p class="font-medium">advtszn</p>
-            </div>
-          </div>
+        <div class="mb-12 flex items-center justify-between">
+          <h1 class="font-heading text-3xl font-medium">
+            {writing.data.title}
+          </h1>
+          <p class="text-muted-foreground text-sm font-medium whitespace-nowrap">
+            {formatDate(writing.data.date)} · advtszn
+          </p>
         </div>
-        <div class="mdx">
+        <article class="mdx mb-20 space-y-6">
           <Content />
-        </div>
-        <div class="mb-6 border-y border-dashed px-4 py-6">
-          <div class="flex flex-col items-center justify-center gap-y-6">
-            <h3 class="font-serif text-3xl lg:text-4xl">
-              Enjoyed this piece of writing?
-            </h3>
-            <p class="text-muted-foreground text-center">
-              You should definitely subscribe my <Link
-                target="_blank"
-                href="https://notesfromvoid.substack.com">substack</Link
-              > to get notified with more such posts
-            </p>
-          </div>
-        </div>
+        </article>
       </div>
     </Container>
   </main>
