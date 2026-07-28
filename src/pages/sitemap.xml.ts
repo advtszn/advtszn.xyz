@@ -22,10 +22,8 @@ export const GET: APIRoute = async ({ site }) => {
     return new Response("Site URL is not configured", { status: 500 });
   }
 
-  const writings: CollectionEntry<"writings">[] = await getCollection(
-    "writings",
-    (entry: CollectionEntry<"writings">) => entry.data.status === "published",
-  );
+  const writings: CollectionEntry<"writings">[] =
+    await getCollection("writings");
 
   const writingPaths = writings.map(({ id }) => `/writings/${id}/`);
   const urls = [...staticPaths, ...writingPaths].map((pathname) => toUrlEntry(site, pathname));

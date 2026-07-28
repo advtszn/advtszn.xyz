@@ -6,10 +6,7 @@ import Link from "~/components/common/link.astro";
 import { ArrowLeft } from "lucide-astro";
 
 export async function getStaticPaths() {
-  const writings = await getCollection(
-    "writings",
-    ({ data }) => data.status === "published",
-  );
+  const writings = await getCollection("writings");
 
   return writings.map((writing) => ({
     params: { slug: writing.id },

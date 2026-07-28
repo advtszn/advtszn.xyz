@@ -2,7 +2,6 @@
 import Container from "~/components/common/container.astro";
 import Layout from "~/layouts/Layout.astro";
 import { getCollection } from "astro:content";
-import { cn } from "~/lib/utils";
 
 const writings = (await getCollection("writings")).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
@@ -25,24 +24,11 @@ const writings = (await getCollection("writings")).sort(
         </p>
         <ol class="space-y-1.5">
           {
-            writings.map(({ id, data: { title, status } }) => (
-              <li
-                class={cn("pl-2 text-lg font-light", {
-                  "text-muted-foreground": status === "draft",
-                })}
-              >
-                {status === "published" ? (
-                  <a
-                    class="underline underline-offset-4"
-                    href={`/writings/${id}`}
-                  >
-                    {title}
-                  </a>
-                ) : (
-                  <p class="inline underline underline-offset-4">
-                    {title} (coming soon)
-                  </p>
-                )}
+            writings.map(({ id, data: { title } }) => (
+              <li class="pl-2 text-lg font-light">
+                <a class="underline underline-offset-4" href={`/writings/${id}`}>
+                  {title}
+                </a>
               </li>
             ))
           }
