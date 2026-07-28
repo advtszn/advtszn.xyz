@@ -1,7 +1,6 @@
 ---
 import Container from "~/components/common/container.astro";
 import Layout from "~/layouts/Layout.astro";
-import Link from "~/components/common/link.astro";
 import { getCollection } from "astro:content";
 import { cn } from "~/lib/utils";
 
@@ -22,10 +21,7 @@ const writings = (await getCollection("writings")).sort(
         <h1 class="font-heading text-3xl font-medium md:text-5xl">writings</h1>
         <p class="text-muted-foreground font-medium text-lg">
           these are raw dumps of my thoughts and theses, you can text me about
-          them or subscribe to my <Link
-            target="_blank"
-            href="https://notesfromvoid.substack.com">substack</Link
-          > to get notified everytime i post something
+          them
         </p>
         <ol class="space-y-1.5">
           {
