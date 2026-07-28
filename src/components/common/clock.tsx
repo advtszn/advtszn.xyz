@@ -22,10 +22,10 @@ export default function Clock() {
   }, []);
 
   return (
-    <div className="flex items-center gap-2 text-sm">
+    <div className="flex items-center gap-2  font-medium">
       <p>india</p>
       <span>•</span>
-      <p className="text-muted-foreground font-medium">{time}</p>
+      <p className="text-muted-foreground">{time}</p>
     </div>
   );
 }

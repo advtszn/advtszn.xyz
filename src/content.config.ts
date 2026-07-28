@@ -3,15 +3,12 @@ import { glob } from "astro/loaders";
 
 const writings = defineCollection({
   loader: glob({ pattern: "*.mdx", base: "./src/content/writings" }),
-  schema: ({ image }) =>
-    z.object({
-      title: z.string(),
-      description: z.string(),
-      date: z.coerce.date(),
-      status: z.enum(["published", "draft"]),
-      thumbnail: image(),
-      thumbnailAlt: z.string(),
-    }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    date: z.coerce.date(),
+    status: z.enum(["published", "draft"]),
+  }),
 });
 
 const works = defineCollection({

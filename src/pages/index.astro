@@ -1,5 +1,4 @@
 ---
-
 import Container from "~/components/common/container.astro";
 import Layout from "../layouts/Layout.astro";
 import city from "~/assets/home/city.webp";
@@ -86,18 +85,18 @@ const age =
         class="flex flex-col space-y-6 lg:flex-row lg:items-start lg:justify-between lg:space-y-0"
       >
         <div class="space-y-8 lg:max-w-[45%] lg:pl-4">
-          <div class="space-y-2 font-light">
-            <h1 class="font-serif text-4xl italic md:text-6xl">
-              advait <span class="text-xl md:text-4xl">(advtszn)</span>
+          <div class="space-y-4 font-light">
+            <h1 class="font-heading text-3xl font-medium md:text-5xl">
+              advait <span class="text-xl md:text-2xl">(advtszn)</span>
             </h1>
             <p
-              class="font-serif text-2xl leading-[120%] [word-spacing:0.15rem] md:text-4xl"
+              class="font-heading text-xl md:text-2xl font-medium leading-[120%]"
             >
               {age} y/o multi-disciplinary engineer, obsessed with scale, speed and
               aesthetics
             </p>
           </div>
-          <div class="text-muted-foreground space-y-4 text-lg">
+          <div class="text-muted-foreground font-medium space-y-4 text-lg">
             <p>
               i love doing things that look good while doing it. im really
               obsessive about good design, typography and ux (in pretty much
@@ -110,9 +109,10 @@ const age =
               love
             </p>
             <p>
-              outside tech, I’ve always had this itch for creative stuff &mdash;
-              i used to post anime edits and <Link href="/archive">cover art</Link> and even
-              tried music production for a bit.
+              outside tech, I’ve always had this itch for creative stuff, i used
+              to post anime edits, designed <Link href="/archive"
+                >cover arts</Link
+              > and even tried music production for a bit.
             </p>
           </div>
         </div>
@@ -156,4 +156,3 @@ const age =
     </Container>
   </main>
 </Layout>
-
