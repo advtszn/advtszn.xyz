@@ -12,11 +12,11 @@ the platform is a content site: articles, quizzes, polls, communities, leaderboa
 
 ![Request path on a single 2-core EC2 box: user to nginx, proxied to two Node.js cluster workers, reaching out to MongoDB Atlas and Redis](./images/scaling-architecture.png)
 
-everything runs on a single EC2 instance with 2 CPU cores. MongoDB lives on Atlas, Redis handles leaderboard caching. i drove load with k6, simulating 1000 concurrent users across three flows: browsing (60%), quizzes (25%), and social engagement (15%). none of this touched production. the whole point was to find the ceiling in staging before real users did.
+everything runs on a single EC2 instance with 2 CPU cores. MongoDB lives on Atlas, Redis handles leaderboard caching. i drove load with k6, simulating 1000 concurrent users across three flows: browsing (60%), quizzes (25%), and social engagement (15%).
 
 # the EOF mystery: your app never even ran
 
-i pointed k6 at the staging API with a load profile built to test endurance, not just peak: ramp up over one minute to 1000 virtual users, then hold steady at 1000 for five minutes. sustained load, not a quick spike. this was the baseline, and it was grim.
+i pointed k6 at the staging API with a load profile built to test endurance, ramp up over one minute to 1000 virtual users, then hold steady at 1000 for five minutes. this was the baseline, and it was grim.
 
 | Metric | Run 1 |
 | --- | ---: |
@@ -26,7 +26,7 @@ i pointed k6 at the staging API with a load profile built to test endurance, not
 | p95 latency | 22,221 ms |
 | Request rate | 86.32 req/s |
 
-more than half the requests failed, and this run had by far the most failures of the whole project. but they weren't the 500s or 503s i expected. 90.6% of them were EOFs, which is what sent me down the rabbit hole.
+more than half the requests failed, and this run had by far the most failures of the whole project. but they weren't the 500s or 503s i expected. 90.6% of them were EOFs.
 
 an EOF error is the network telling you "i opened a connection, and the other end hung up before saying anything", it means our application code never ran. something was killing connections *before* they reached Express.
 
@@ -99,7 +99,7 @@ worker_rlimit_nofile 65535;
 events { worker_connections 4096; }
 ```
 
-`worker_rlimit_nofile` is belt-and-suspenders: even with the OS limit raised, systemd can impose its own, so nginx sets its ceiling explicitly at startup. this needs a full `systemctl restart`, not a reload, to take effect.
+`worker_rlimit_nofile` is belt-and-suspenders: even with the OS limit raised, systemd can impose its own, so nginx sets its ceiling explicitly at startup.
 
 ## run 3: zero transport failures
 
@@ -117,7 +117,7 @@ the connection layer was solved, and it left the lifecycle brutally honest: ever
 
 every request hit MongoDB directly, even for content that is identical for every anonymous user. Redis was already in the stack for leaderboards, so i extended it as a cache layer for the hottest read paths: content entities, the paginated feed, article comments, and community listings.
 
-the design decision worth calling out is *what* to cache. for individual content lookups i cached the domain entity data, so any use case can rehydrate a full object with `Content.rehydrate()` and not care whether it came from cache or DB. for feeds i cached the entire assembled response instead. caching entity-by-entity would mean fetching a list of IDs, running MGET, handling partial misses, and stitching, which is 2-3 Redis round-trips versus one cache hit that returns the whole payload.
+for individual content lookups i cached the domain entity data, so any use case can rehydrate a full object with `Content.rehydrate()` and not care whether it came from cache or DB. for feeds i cached the entire assembled response instead.
 
 what i deliberately did *not* cache: per-user state like `isFollowed`. that would need one cache key per user, so 1000 users means 1000 separate entries for the same listing page, which defeats the entire point. i cache the shared data and run one cheap query for the per-user bit.
 
