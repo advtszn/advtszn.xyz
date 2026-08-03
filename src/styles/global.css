@@ -20,14 +20,14 @@
 
 /* Ensure fonts don't block rendering */
 @font-face {
-  font-family: "Instrument Sans";
+  font-family: "Instrument Sans Variable";
   font-display: swap;
 }
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "Instrument Sans", sans-serif;
+  --font-sans: "Instrument Sans Variable", sans-serif;
   --font-heading: "Satoshi Variable", sans-serif;
   --font-satoshi: "Satoshi Variable", sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
