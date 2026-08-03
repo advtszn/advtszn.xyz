@@ -8,7 +8,7 @@ the first time i pointed 1000 virtual users at our staging API, more than half t
 
 this is the log of how i got from there to a 99.96% success rate and a 777ms p95, on the exact same 2-core EC2 box, without spending a dollar more on hardware. the last leg of that came from *removing* processes, not adding them, which is the part that still feels wrong to me.
 
-the platform is a content site: articles, quizzes, polls, communities, leaderboards. and the tech stack is depicted in the diagram belo
+the platform is a content site: articles, quizzes, polls, communities, leaderboards. and the tech stack is in the diagram below.
 
 ![Request path on a single 2-core EC2 box: user to nginx, proxied to two Node.js cluster workers, reaching out to MongoDB Atlas and Redis](./images/scaling-architecture.png)
 
@@ -133,7 +133,7 @@ CPU was still under 40%. the workload was I/O-bound, spending most of its time w
 
 ## run 5: the biggest single jump
 
-throughput doubled again to 467 req/s and p95 fell 55% to 6,857ms. median latency dropped to 135ms, so most requests were now genuinely fast, and the pain was entirely in the write-heavy tail. remember this fix. it comes back.
+throughput doubled again to 467 req/s and p95 fell 55% to 6,857ms. median latency dropped to 135ms, so most requests were now genuinely fast, and the pain was entirely in the write-heavy tail.
 
 # fix 6 and 7: killing the write tail
 
@@ -145,7 +145,7 @@ two rounds of work went after the writes, which were now the entire problem.
 
 **read replicas.** an Atlas cluster is three instances by default: one primary and two secondaries. writes only go to the primary, which then replicates to the secondaries *asynchronously*, so a secondary is a full copy of the data that trails the primary by anywhere from milliseconds to seconds. the secondaries aren't special read-tuned hardware, they're just identical nodes that normally sit idle taking replication traffic. so by default all my reads *and* writes were hammering a single node while two others did nothing.
 
-i set `readPreference: 'secondaryPreferred'` to fan reads out across the secondaries and reserve the primary for writes. the asynchronous part is the catch so session and OTP lookups were force read from primary
+i set `readPreference: 'secondaryPreferred'` to fan reads out across the secondaries and reserve the primary for writes. the asynchronous lag is the catch: a read from a secondary can miss a write that just happened on the primary. so i forced session and OTP lookups back to the primary, where staleness isn't acceptable.
 
 ## run 7: all four thresholds green
 
@@ -159,7 +159,7 @@ by this point the box was running, on 2 vCPUs: 4 API workers (from fix 5), 2 bac
 
 i scaled the API back to 2 workers (one per core), moved the BullMQ processor to a single fork process (a queue consumer gets its parallelism from its `concurrency` setting, not from process count).
 
-latency dropped immediately, and throughput went *up* at the same time. fewer processes, more work done. that is the unmistakable signature of CPU oversubscription: remove contenders for the CPU and the survivors actually get to run, so latency and throughput improve together. under genuine overload, cutting capacity makes both worse. i saw the opposite, which told me the box was oversubscribed, not overloaded.
+latency dropped immediately, and throughput went *up* at the same time. that is the unmistakable signature of CPU oversubscription: remove contenders for the CPU and the survivors actually get to run, so latency and throughput improve together. under genuine overload, cutting capacity makes both worse. i saw the opposite, which told me the box was oversubscribed, not overloaded.
 
 here is the lesson i keep coming back to. **the caching work didn't just make requests faster. it moved the bottleneck from I/O to CPU, which inverted the optimal number of processes.**
 
