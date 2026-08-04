@@ -3,7 +3,7 @@ import Container from "~/components/common/container.astro";
 import Layout from "~/layouts/Layout.astro";
 import { getCollection, render } from "astro:content";
 import WorksList from "~/components/works/works-list";
-import Link from "~/components/common/link.astro"
+import Link from "~/components/common/link.astro";
 
 const entries = (await getCollection("works")).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
@@ -12,14 +12,18 @@ const entries = (await getCollection("works")).sort(
 const works = entries.map(({ id, data }) => ({ id, ...data }));
 
 const descriptions = await Promise.all(
-  entries.map(async (entry) => ({ id: entry.id, Content: (await render(entry)).Content })),
+  entries.map(async (entry) => ({
+    id: entry.id,
+    Content: (await render(entry)).Content,
+  })),
 );
 ---
 
 <Layout
   content={{
     title: "works | advtszn",
-    description: "index of the works/projects i was involved in",
+    description:
+      "products and experiments i am/was affiliated with, with case studies of selected works",
   }}
 >
   <main>
@@ -28,13 +32,10 @@ const descriptions = await Promise.all(
         <div class="space-y-4 lg:max-w-[45%]">
           <h1 class="font-heading text-3xl font-medium md:text-5xl">works</h1>
           <p class="text-muted-foreground text-lg font-medium text-justify">
-            the list includes all the startups, products and experiments i
-            am/was affiliated with so far. for a visual showcase of selected
-            works with case studies, check out <Link
+            products and experiments i am/was affiliated with. for a visual
+            showcase and case studies of selected works: <Link
               target="_blank"
-              href="https://works.advtszn.xyz"
-              
-              >works.advtszn.xyz</Link
+              href="https://works.advtszn.xyz">works.advtszn.xyz</Link
             >
           </p>
         </div>

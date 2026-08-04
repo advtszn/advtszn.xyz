@@ -11,7 +11,8 @@ const writings = (await getCollection("writings")).sort(
 <Layout
   content={{
     title: "writings | advtszn",
-    description: "cinematic expressions of what i think, feel, see and do",
+    description:
+      "notes on things i'm learning and building, written up as i go",
   }}
 >
   <main>
@@ -19,14 +20,16 @@ const writings = (await getCollection("writings")).sort(
       <div class="space-y-4 lg:max-w-[45%] lg:pl-4">
         <h1 class="font-heading text-3xl font-medium md:text-5xl">writings</h1>
         <p class="text-muted-foreground font-medium text-lg">
-          these are raw dumps of my thoughts and theses, you can text me about
-          them
+          notes and devlogs on things that i learn and build
         </p>
         <ol class="space-y-2.5">
           {
             writings.map(({ id, data: { title } }) => (
               <li class="pl-1.5 text-lg font-light">
-                <a class="underline underline-offset-4" href={`/writings/${id}`}>
+                <a
+                  class="underline underline-offset-4"
+                  href={`/writings/${id}`}
+                >
                   {title}
                 </a>
               </li>
