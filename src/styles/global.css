@@ -104,7 +104,13 @@
 
 .marquee-container {
   overflow: hidden;
-  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent 100%);
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent 100%
+  );
   -webkit-mask-image: linear-gradient(
     to right,
     transparent,
@@ -144,7 +150,13 @@
 @media (max-width: 767px) {
   .marquee-container {
     max-width: 10rem;
-    mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent 100%);
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 20%,
+      black 80%,
+      transparent 100%
+    );
     -webkit-mask-image: linear-gradient(
       to right,
       transparent,
@@ -161,8 +173,8 @@
   }
 }
 
-.mdx {
-  @apply space-y-6;
+[data-lightbox] {
+  cursor: zoom-in;
 }
 
 .mdx h1 {
@@ -203,11 +215,7 @@
 
 /* Images */
 .mdx img {
-  max-width: 90%;
-  max-height: 512px;
-  height: auto;
-  object-fit: contain;
-  @apply mx-auto my-12 cursor-zoom-in rounded-md;
+  @apply mx-auto my-12 rounded-md;
 }
 
 .mdx p {

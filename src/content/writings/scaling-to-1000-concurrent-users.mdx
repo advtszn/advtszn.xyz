@@ -4,13 +4,22 @@ description: A journey of taking a content platform's API from a 55% success rat
 date: 2026-07-28
 ---
 
+import { Image } from "astro:assets";
+import architecture from "./images/scaling-architecture.png";
+import eofFd from "./images/scaling-eof-fd.png";
+import cpuOversubscription from "./images/scaling-cpu-oversubscription.png";
+
 the first time i pointed 1000 virtual users at our staging API, more than half the requests failed. success rate 54.82%, p95 latency of 22 seconds, and 16,437 failed requests in a five-minute window. none of the failures were the server errors i expected. 90.6% of them were something called an EOF.
 
 this is the log of how i got from there to a 99.96% success rate and a 777ms p95, on the exact same 2-core EC2 box, without spending a dollar more on hardware. the last leg of that came from *removing* processes, not adding them, which is the part that still feels wrong to me.
 
 the platform is a content site: articles, quizzes, polls, communities, leaderboards. and the tech stack is in the diagram below.
 
-![Request path on a single 2-core EC2 box: user to nginx, proxied to two Node.js cluster workers, reaching out to MongoDB Atlas and Redis](./images/scaling-architecture.png)
+<Image
+  src={architecture}
+  alt="Request path on a single 2-core EC2 box: user to nginx, proxied to two Node.js cluster workers, reaching out to MongoDB Atlas and Redis"
+  data-lightbox
+/>
 
 everything runs on a single EC2 instance with 2 CPU cores. MongoDB lives on Atlas, Redis handles leaderboard caching. i drove load with k6, simulating 1000 concurrent users across three flows: browsing (60%), quizzes (25%), and social engagement (15%).
 
@@ -83,7 +92,12 @@ $ ulimit -n
 
 `ulimit -n` is the max number of file descriptors a process can hold open, and here is the thing that ties this whole section back to the EOF mystery: in Unix, every TCP connection is a file descriptor. each client-to-nginx connection is one, each nginx-to-Node upstream connection is another. with a 1024 limit, nginx could hold roughly 500 concurrent proxied requests before the OS flat refused to create the next socket. request 501 got an EOF. that is why CPU was fine at 40%, why `worker_connections` didn't matter (the OS limit was lower), and why 90% of failures were EOF and not application errors.
 
-![Under load, each client and each upstream connection eats a file descriptor. With ulimit -n at 1024, nginx caps around 500 proxied requests and request ~501 gets an EOF, all while CPU sits under 40%](./images/scaling-eof-fd.png)
+<Image
+  src={eofFd}
+  alt="Under load, each client and each upstream connection eats a file descriptor. With ulimit -n at 1024, nginx caps around 500 proxied requests and request ~501 gets an EOF, all while CPU sits under 40%"
+  data-lightbox
+  style="max-width: 90%; max-height: 512px; height: auto; object-fit: contain;"
+/>
 
 the fix, across three layers:
 
@@ -167,7 +181,12 @@ back at fix 5, every request sat waiting on an I/O operation (network calls to r
 
 > concurrency past your core count only helps while you're I/O-bound. every optimization that removes I/O wait pushes you toward CPU-bound, and toward *fewer* processes, not more.
 
-![Same 2 cores, opposite optimum: while I/O-bound, ~8 processes overlap their waits and hide latency; once caching makes the work CPU-bound, 2 workers plus one fork win and p95 drops from 2846ms to 777ms](./images/scaling-cpu-oversubscription.png)
+<Image
+  src={cpuOversubscription}
+  alt="Same 2 cores, opposite optimum: while I/O-bound, ~8 processes overlap their waits and hide latency; once caching makes the work CPU-bound, 2 workers plus one fork win and p95 drops from 2846ms to 777ms"
+  data-lightbox
+  style="max-width: 90%; max-height: 512px; height: auto; object-fit: contain;"
+/>
 
 so the 4-worker config was never fundamentally right. it was a workaround compensating for a slow database, and the moment i fixed the real cause, the workaround became the problem.
 
