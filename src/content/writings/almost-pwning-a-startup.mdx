@@ -1,0 +1,108 @@
+---
+title: almost pwning a startup
+description: A new, vibecoded parcel-forwarding startup, a chain of vulnerabilities found from the browser network tab, and why AI-written backends keep failing the same way.
+date: 2026-10-03
+---
+
+import { Image } from "astro:assets";
+import networkTab from "./images/pwning-network-tab.png";
+import idor from "./images/pwning-idor.jpeg";
+import envLeak from "./images/pwning-env.png";
+import adminPanel from "./images/pwning-admin.jpeg";
+
+> all the vulnerabilities were duly disclosed to the operator and have now been fixed. this was carried out in a black-box manner with no ill intentions of harming anyone's privacy, only in good faith of helping the operator strengthen their security.
+
+first week of october, i was looking for a parcel forwarding service to send some gifts. i came across this one particular website that chatgpt suggested and as usual i searched reddit for its reviews but found none. digging further i was able to find the company's registration to be only a few months old.
+that led me to contacting the support for clarifying a few questions i had, it was the founder's own business phone number -- we got on a call and got it sorted.
+the website clearly looked vibecoded and confirmed by the founder himself he had built it with not much of a technical knowledge. after placing my orders i looked into the network tab and it led to a chain of vulnerabilities one by one.
+
+# sequential database IDs
+
+<Image
+  src={networkTab}
+  alt="browser devtools network tab showing repeated fetch requests to the same profile endpoint, each returning 200"
+  data-lightbox
+/>
+
+the network tab showed multiple requests with an integer, the url was `https://host.xyz/api/user/profile/<integer>`, hit the same url with a different integer and boom. you can list every user's information like that. the breaking point was that it exposed PII like their home address, phone number etc. the same pattern existed in endpoints that served other sensitive data like documents, transactions, shipments etc.
+
+<Image
+  src={idor}
+  alt="an api response for another user's profile with all pii values redacted, alongside the access-control-allow-origin and x-powered-by response headers"
+  data-lightbox
+/>
+
+> this kind of vulnerability is known as Insecure Direct Object Reference (IDOR), and it falls under Broken Access Control, the #1 category (A01) in the OWASP Top 10.
+
+it doesn't end here, the first time i tried the request i used my own authz bearer token but it turned out to be a no-op, you could literally strip the `Authorization` header -- every endpoint that should've been protected was publicly accessible.
+
+> a bearer scheme that never actually validates the token is Identification and Authentication Failures (A07 in the OWASP Top 10).
+
+# vulnerable host machine
+
+the server echoed the exact CyberPanel version it was running on
+
+```http
+x-powered-by: CyberPanel-OLS/2.4.4
+```
+
+this doesn't make the website vulnerable directly, but the CyberPanel version running the website itself was affected by [CVE-2026-67614](https://nvd.nist.gov/vuln/detail/cve-2026-67614) which has a CVSS 4.0 score of 9.3 (Critical) and two more high severity vulnerabilities.
+the CVE-2026-67614 vulnerability allowed an attacker to gain root access on the host machine by forging a JWT token signed with the hardcoded secret found in the source code, and using it to access the WebTerminal FastAPI SSH service.
+i tried my luck on that particular vulnerability bcs it was tempting but wasn't able to exploit it, anyone else with a good hand in CTFs could have done it easily and it leads to a full compromise of the platform along with the source code leak, and moreover there existed 2 more high severity vulnerabilities that could've been exploited but i didn't test against them.
+
+> running a known-vulnerable version of your hosting platform is OWASP A06, Vulnerable and Outdated Components. the fix is boring but non-negotiable: keep it patched.
+
+| CVE | what it does | CVSS v4.0 | affected |
+| --- | --- | --- | --- |
+| [CVE-2026-67614](https://nvd.nist.gov/vuln/detail/cve-2026-67614) | hard-coded JWT secret in the WebTerminal SSH service; forge a root-authenticated token and get an interactive root shell over websocket on port 8888 (unauthenticated RCE) | 9.3 critical | `<3.0.0` |
+| [CVE-2026-41473](https://nvd.nist.gov/vuln/detail/cve-2026-41473) | unauthenticated auth bypass in the AI Scanner webhook endpoints; write arbitrary data to the database | 9.1 critical | `<2.4.5` |
+| [CVE-2026-88895](https://nvd.nist.gov/vuln/detail/cve-2026-88895) | 2FA bypass on API endpoints using password-derived tokens | 7.2 high | `<3.0.5` |
+| [CVE-2026-87820](https://nvd.nist.gov/vuln/detail/cve-2026-87820) | unauthenticated info disclosure via AI Scanner debug endpoints (admin usernames, api-key prefixes, scan metadata) | 5.3 medium | 2.4.3–2.4.5 |
+
+# cors set to allow everyone
+
+reading those same response headers, one more line stood out:
+
+```http
+access-control-allow-origin: *
+```
+
+a wildcard `Access-Control-Allow-Origin` means any website on the internet can make cross-origin requests to the API from a visitor's browser and read the responses back, instead of being blocked by the browser's same-origin policy. normally that policy is a safety net; here it was switched off. stacked on top of the no-op auth, there was effectively nothing left -- not a token, not the browser -- stopping another site from reading this API.
+
+> overly permissive CORS is another Security Misconfiguration (A05 in the OWASP Top 10).
+
+# still compromised
+
+appending `/.env` to the domain is one of the oldest checks there is. it works far more often than it should, and it worked here.
+
+<Image
+  src={envLeak}
+  alt="the leaked .env file served directly over http, with every secret value redacted"
+  data-lightbox
+/>
+
+the env file leaked database credentials, including an empty root password -- bad on its own, and a hint the mysql server was running locally on the host -- along with live payment secrets an attacker could use to commit direct financial fraud.
+it also leaked the `JWT_SECRET`, and that one wasn't even a random value -- it was a hardcoded placeholder string. so even if the bearer auth from the first finding had actually validated tokens, forging a valid one was trivial: the signing key was sitting in this file *and* guessable to begin with.
+
+> a `.env` served straight from the web root is textbook Security Misconfiguration (A05 in the OWASP Top 10).
+
+because the `.env` was exposed, my next assumption was that this might also lead to a path traversal attack -- if i could read that file, maybe i could climb out of the web root and read arbitrary files on the host. so the next thing i tried was reading `/etc/passwd` with a few traversal patterns and payloads (`../`, url-encoded, double-encoded, `....//`, backslashes). nothing really worked, every attempt came back 400 or 404.
+so it was concluded to be plain static file exposure -- the `.env` was just sitting inside the public web root and being served as a static asset, not a traversal flaw. same blast radius, less exciting bug.
+
+if the earlier exploit had worked we'd have a full database dump as the mysql server is running locally on the host, but the env file also leaked admin credentials which point to an admin dashboard.
+from here i could've bruteforced to find the admin dashboard path but instead decided to check robots.txt first and found the admin route there, logged in and confirmed a full database dump was trivially possible.
+the API endpoints used by the admin dashboard were also public and non-paginated, all data was being loaded in one go, which meant every user's PII, shipment, transaction, fulfillment and other data was reachable in just a few network requests. back to Broken Access Control (A01), the same root cause as the very first finding.
+
+<Image
+  src={adminPanel}
+  alt="the admin dashboard, reached by logging in with the leaked credentials, with the activity log table redacted"
+  data-lightbox
+/>
+
+# nothing crazy, but extremely serious
+
+back in my first year of college i used to practice ctfs a lot, but i never really got good at it and honestly i'm still not -- the one genuinely hard thing here was the cyberpanel root shell exploit which i couldn't pull off. but ctfs permanently rewired how i look at software.
+
+everything that actually worked was trivial. changing an integer in a url, deleting a header, typing `/.env`, reading `robots.txt`. no payloads, no tooling beyond curl, nothing you couldn't do in your first week of ctfs.
+
+the impact though was anything but trivial -- every user's PII, live payment keys, admin access, and a root RCE sitting one working exploit away from the whole host and database. the distance between "took twenty minutes and barely any skill to find" and "catastrophic if abused" was basically zero.
