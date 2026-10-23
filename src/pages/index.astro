@@ -81,65 +81,72 @@ const age =
 >
   <main class="">
     <Container>
-      <div
-        class="flex flex-col space-y-6 lg:flex-row lg:items-start lg:justify-between lg:space-y-0"
-      >
+      <div class="flex flex-col space-y-6 lg:flex-row lg:items-start lg:justify-between lg:space-y-0">
         <div class="space-y-8 lg:max-w-[50%] lg:pl-4">
           <div class="space-y-4 font-light">
             <h1 class="font-heading text-3xl font-medium md:text-5xl">
               advait <span class="text-xl md:text-2xl">(advtszn)</span>
             </h1>
-            <p
-              class="font-heading text-xl md:text-2xl font-medium leading-[120%] hyphens-auto"
-            >
-              {age} y/o multi-disciplinary engineer, obsessed with scale, speed and
-              aesthetics
+            <p class="font-heading text-xl md:text-2xl font-medium leading-[120%] hyphens-auto">
+              {age} y/o multi-disciplinary engineer, obsessed with scale, speed
+              and aesthetics
             </p>
           </div>
           <div class="text-muted-foreground space-y-4 text-lg text-justify">
             <p>
-              currently software engineer at <Link
-                href="https://wldd.in"
-                target="_blank">wldd.in</Link
-              >; prev. <Link
+              software engineer at{" "}
+              <Link href="https://wldd.in" target="_blank">
+                wldd.in
+              </Link>
+              ; prev.{" "}
+              <Link
                 href="https://works.advtszn.xyz/kimchipremium"
-                target="_blank">kimchipremium.io</Link
-              >. my day-to-day revolves around backend, but im really obsessive
+                target="_blank"
+              >
+                kimchipremium.io
+              </Link>
+              . my day-to-day revolves around backend, but im really obsessive
               about good typography and ux
             </p>
             <p>a few things i&apos;ve shipped:</p>
-            <ul
-              class="marker:text-muted-foreground/40 list-disc space-y-2 pl-5 text-left"
-            >
+            <ul class="marker:text-muted-foreground/40 list-disc space-y-2 pl-5 text-left">
               <li>
-                owned backend on <Link
+                owned backend on{" "}
+                <Link
                   href="https://works.advtszn.xyz/listable-labs"
-                  target="_blank">listable labs</Link
-                >; prompt eval pipeline, background job processing, multi-tenant
+                  target="_blank"
+                >
+                  listable labs
+                </Link>
+                ; prompt eval pipeline, background job processing, multi-tenant
                 blogs on custom domains
-              </li>
-
-              <li>
-                built <Link
-                  href="https://works.advtszn.xyz/orbe"
-                  target="_blank">orbe</Link
-                > solo; an outreach os that enriches a lead from email and writes
-                a personalized pitch
               </li>
 
               <li>
                 <Link
                   href="https://works.advtszn.xyz/kimchipremium"
-                  target="_blank">kimchipremium</Link
-                >, built an aggregator that scrapes and publishes ~100
-                crypto headlines a day (278 at peak)
+                  target="_blank"
+                >
+                  kimchipremium
+                </Link>
+                , built an aggregator that scrapes and publishes ~100 crypto
+                headlines a day (278 at peak)
+              </li>
+
+              <li>
+                built{" "}
+                <Link href="https://works.advtszn.xyz/orbe" target="_blank">
+                  orbe
+                </Link>{" "}
+                solo; an outreach os that enriches a lead from email and writes
+                a personalized pitch
               </li>
             </ul>
             <p>
               outside tech, i&apos;ve dabbled in a few other things too, i used
-              to post anime edits, designed <Link href="/archive"
-                >cover arts</Link
-              > and even tried music production for a bit.
+              to post anime edits, designed{" "}
+              <Link href="/archive">cover arts</Link> and even tried music
+              production for a bit.
             </p>
           </div>
         </div>
@@ -153,31 +160,29 @@ const age =
             "lg:[-moz-column-count:2]  lg:[-webkit-column-count:2] lg:[column-count:2]",
           )}
         >
-          {
-            images.map(async ({ src, src400, src800, alt, lqip }) => {
-              const webpImage = await getImage({ src, format: "webp" });
-              const webp400 = await getImage({ src: src400, format: "webp" });
-              const webp800 = await getImage({ src: src800, format: "webp" });
-              const srcset = `${webp400.src} 400w, ${webp800.src} 800w, ${webpImage.src} 1200w`;
+          {images.map(async ({ src, src400, src800, alt, lqip }) => {
+            const webpImage = await getImage({ src, format: "webp" });
+            const webp400 = await getImage({ src: src400, format: "webp" });
+            const webp800 = await getImage({ src: src800, format: "webp" });
+            const srcset = `${webp400.src} 400w, ${webp800.src} 800w, ${webpImage.src} 1200w`;
 
-              return (
-                <BlurImage
-                  src={webpImage.src}
-                  srcset={srcset}
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  lqip={lqip}
-                  alt={alt}
-                  width={src.width}
-                  height={src.height}
-                  class="mb-2 h-auto md:w-3xs cursor-zoom-in rounded grayscale"
-                  grayscalePlaceholder={true}
-                  data-full={webpImage.src}
-                  loading="eager"
-                  fetchpriority="high"
-                />
-              );
-            })
-          }
+            return (
+              <BlurImage
+                src={webpImage.src}
+                srcset={srcset}
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                lqip={lqip}
+                alt={alt}
+                width={src.width}
+                height={src.height}
+                class="mb-2 h-auto md:w-3xs cursor-zoom-in rounded grayscale"
+                grayscalePlaceholder={true}
+                data-full={webpImage.src}
+                loading="eager"
+                fetchpriority="high"
+              />
+            );
+          })}
         </div>
       </div>
     </Container>
