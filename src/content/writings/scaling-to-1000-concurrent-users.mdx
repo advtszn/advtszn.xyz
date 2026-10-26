@@ -27,6 +27,8 @@ everything runs on a single EC2 instance with 2 CPU cores. MongoDB lives on Atla
 
 i pointed k6 at the staging API with a load profile built to test endurance, ramp up over one minute to 1000 virtual users, then hold steady at 1000 for five minutes. this was the baseline, and it was grim.
 
+<figure>
+
 | Metric | Run 1 |
 | --- | ---: |
 | Success rate | 54.82% |
@@ -35,16 +37,24 @@ i pointed k6 at the staging API with a load profile built to test endurance, ram
 | p95 latency | 22,221 ms |
 | Request rate | 86.32 req/s |
 
+<figcaption>run 1, the baseline: 1000 virtual users held for five minutes against a single 2-core box</figcaption>
+</figure>
+
 more than half the requests failed, and this run had by far the most failures of the whole project. but they weren't the 500s or 503s i expected. 90.6% of them were EOFs.
 
 an EOF error is the network telling you "i opened a connection, and the other end hung up before saying anything", it means our application code never ran. something was killing connections *before* they reached Express.
 
 the k6 lifecycle breakdown pointed at two separate problems:
 
+<figure>
+
 | Phase | avg |
 | --- | ---: |
 | blocked (waiting for a connection slot) | 1,092 ms |
 | waiting / TTFB (server processing) | 7,654 ms |
+
+<figcaption>k6's lifecycle breakdown for run 1, splitting the wait into connection queuing and server processing</figcaption>
+</figure>
 
 `blocked` over a second meant requests were queuing just to get a connection. a 7.6s TTFB meant the requests that *did* get through hit slow application logic. one was an infrastructure problem, one was a database problem.
 
@@ -117,11 +127,16 @@ events { worker_connections 4096; }
 
 ## run 3: zero transport failures
 
+<figure>
+
 | Metric | Run 1 | Run 2 | Run 3 |
 | --- | --- | --- | --- |
 | Success rate | 54.82% | 74.11% | 99.90% |
 | Transport EOF | 14,751 | 7,855 | 0 |
 | `blocked` avg | 1,092 ms | 1,411 ms | 10 ms |
+
+<figcaption>runs 1 to 3, after raising the file descriptor limits and putting nginx in front</figcaption>
+</figure>
 
 zero EOFs. `blocked` dropped from over a second to 10ms. the 26 remaining failures were application-level 400s from the same virtual user liking and unliking the same content, which correctly returns a validation error. not a bug.
 
@@ -198,6 +213,8 @@ that same run had a *measured* p99 of 3,714ms, and the entire gap over p95 is on
 
 # the full journey
 
+<figure>
+
 | Run | Fix | p95 | Throughput | Success |
 | --- | --- | --- | --- | --- |
 | 1 | Baseline | 22,221 ms | 86 req/s | 54.8% |
@@ -208,5 +225,8 @@ that same run had a *measured* p99 of 3,714ms, and the entire gap over p95 is on
 | 6 | Assembled response caching | 3,700 ms | 572 req/s | 99.96% |
 | 7 | Write deferral + read replicas | 2,846 ms | 570 req/s | 99.93% |
 | 8 | Right-sized pm2 to cores | 777 ms | 756 req/s | 100.00% |
+
+<figcaption>all eight runs, same 2-core box throughout, p95 from 22s to 777ms</figcaption>
+</figure>
 
 the shape of the work is what surprised me. i expected a scaling story to be about adding things: more workers, more cache, a bigger machine. instead the bottleneck just kept moving. the OS refused to open sockets, then missing indexes forced full scans, then uncached reads hammered the database, then write contention clogged the pool, and finally the number of processes itself became the enemy.

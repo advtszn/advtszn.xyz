@@ -223,25 +223,60 @@
 }
 
 /* Tables */
+.mdx figure:has(table) {
+  @apply my-10 flex flex-col items-center gap-3;
+}
+
+.mdx figcaption {
+  @apply text-muted-foreground/75 max-w-xl text-center text-[13px] leading-normal md:text-sm;
+  text-wrap: pretty;
+}
+
 .mdx table {
-  @apply my-8 w-full border-collapse overflow-x-auto text-sm md:text-base;
+  @apply mx-auto border-collapse text-[15px] md:text-base;
   display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .mdx thead {
   @apply border-border border-b;
 }
 
+.mdx tbody {
+  @apply border-border border-b;
+}
+
 .mdx th {
-  @apply text-foreground/90 font-heading px-3 py-2 text-left font-medium whitespace-nowrap;
+  @apply text-foreground/60 font-heading pr-7 pb-2.5 text-left text-[0.8em] font-medium tracking-wider uppercase whitespace-nowrap;
 }
 
 .mdx td {
-  @apply text-muted-foreground border-border border-t px-3 py-2 align-top;
+  @apply text-muted-foreground py-2.5 pr-7 align-baseline;
+  font-variant-numeric: tabular-nums;
 }
 
-.mdx tbody tr:hover {
-  @apply bg-muted/40;
+.mdx th:last-child,
+.mdx td:last-child {
+  @apply pr-0;
+}
+
+/* the trailing columns are short values, let them hold one line */
+.mdx td:last-child,
+.mdx td:nth-last-child(2) {
+  @apply whitespace-nowrap;
+}
+
+.mdx table a {
+  @apply text-muted-foreground bg-transparent p-0 font-medium underline underline-offset-4;
+  transition: color 150ms;
+  /* keep link labels on one line so their column claims the width it needs */
+  white-space: nowrap;
+}
+
+.mdx table a:hover {
+  @apply text-foreground;
 }
 
 /* Code */

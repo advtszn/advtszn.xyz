@@ -52,12 +52,17 @@ i tried my luck on that particular vulnerability bcs it was tempting but wasn't 
 
 > running a known-vulnerable version of your hosting platform is OWASP A06, Vulnerable and Outdated Components. the fix is boring but non-negotiable: keep it patched.
 
+<figure>
+
 | CVE | what it does | CVSS v4.0 | affected |
 | --- | --- | --- | --- |
 | [CVE-2026-67614](https://nvd.nist.gov/vuln/detail/cve-2026-67614) | hard-coded JWT secret in the WebTerminal SSH service; forge a root-authenticated token and get an interactive root shell over websocket on port 8888 (unauthenticated RCE) | 9.3 critical | `<3.0.0` |
 | [CVE-2026-41473](https://nvd.nist.gov/vuln/detail/cve-2026-41473) | unauthenticated auth bypass in the AI Scanner webhook endpoints; write arbitrary data to the database | 9.1 critical | `<2.4.5` |
 | [CVE-2026-88895](https://nvd.nist.gov/vuln/detail/cve-2026-88895) | 2FA bypass on API endpoints using password-derived tokens | 7.2 high | `<3.0.5` |
 | [CVE-2026-87820](https://nvd.nist.gov/vuln/detail/cve-2026-87820) | unauthenticated info disclosure via AI Scanner debug endpoints (admin usernames, api-key prefixes, scan metadata) | 5.3 medium | 2.4.3–2.4.5 |
+
+<figcaption>the four CyberPanel CVEs the running version was exposed to, none of which i exploited past the first</figcaption>
+</figure>
 
 # cors set to allow everyone
 
