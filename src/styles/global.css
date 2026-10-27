@@ -210,7 +210,7 @@
 }
 
 .mdx a {
-  @apply underline underline-offset-4 transition-colors delay-150 text-muted-foreground font-medium;
+  @apply underline underline-offset-4 transition-colors text-muted-foreground font-medium;
 }
 
 .mdx a:hover {
