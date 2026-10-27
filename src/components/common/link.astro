@@ -13,6 +13,10 @@ const { href, className, target = "_self" } = Astro.props;
 <a
   href={href}
   target={target}
-  class={cn("bg-muted text-muted-foreground font-medium px-1", className)}
-  ><slot /></a
+  class={cn(
+    "underline underline-offset-4 transition-colors delay-150 hover:text-foreground text-muted-foreground font-medium",
+    className,
+  )}
 >
+  <slot />
+</a>

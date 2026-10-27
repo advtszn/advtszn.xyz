@@ -210,7 +210,11 @@
 }
 
 .mdx a {
-  @apply bg-muted text-muted-foreground font-medium px-1;
+  @apply underline underline-offset-4 transition-colors delay-150 text-muted-foreground font-medium;
+}
+
+.mdx a:hover {
+  @apply text-foreground;
 }
 
 /* Images */
@@ -269,14 +273,7 @@
 }
 
 .mdx table a {
-  @apply text-muted-foreground bg-transparent p-0 font-medium underline underline-offset-4;
-  transition: color 150ms;
-  /* keep link labels on one line so their column claims the width it needs */
   white-space: nowrap;
-}
-
-.mdx table a:hover {
-  @apply text-foreground;
 }
 
 /* Code */
