@@ -46,7 +46,9 @@ I shortlisted 15 creators across different niches and scraped two things for eac
 </div>
 <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
-Each creator's reels then get uploaded via the Gemini Files API and fed to `gemini-2.5-flash` in a single pass, which returns a structured JSON profile with three distinct summaries per creator: one describing their niche, one describing their content style, and one describing their target audience. (I also prototyped the video analysis with TwelveLabs' marengo and pegasus models before settling on Gemini) Those summaries are embedded with `gemini-embedding-001` and stored in three separate ChromaDB collections, one per facet. Every embedding carries the creator's unique ID as metadata, and the static profile data lives in MongoDB keyed by that same ID. The vector store answers "who matches this vibe," and MongoDB answers "tell me about them."
+Each creator's reels then get uploaded via the Gemini Files API and fed to `gemini-2.5-flash` in a single pass, which returns a structured JSON profile with three distinct summaries per creator: one describing their niche, one describing their content style, and one describing their target audience. (I also prototyped the video analysis with TwelveLabs' marengo and pegasus models before settling on Gemini)
+
+Those summaries are embedded with `gemini-embedding-001` and stored in three separate ChromaDB collections, one per facet. Every embedding carries the creator's unique ID as metadata, and the static profile data lives in MongoDB keyed by that same ID. The vector store answers "who matches this vibe," and MongoDB answers "tell me about them."
 
 ### Multi-Facet Retrieval
 

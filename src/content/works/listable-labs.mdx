@@ -48,7 +48,11 @@ The first version was a two-pass LLM setup: one call generates the response, a s
 
 The deterministic version was a small markdown AST parser I wrote: walk the response, find any ordered or unordered list, check if the brand appears in it, and treat every other brand in the same list as a competitor and the sources and citation urls were extracted similarly. It was fast and free, and it was off. Brands don't appear in responses under one canonical name; if wldd showed up as "wubba lubba dub dub" the parser counted it as no mention at all. Aliases, abbreviations and stylized names made the whole thing miss constantly.
 
-The deeper problem was that structure isn't semantics, and ranking exposed it. Because position comes from where a brand sits in a list, the ranking is only ever scoped to whatever list it appeared in, not the response as a whole. Say we're tracking Anthropic and a response names ten AI companies grouped into categories (commercial, non-profit, alignment-focused). If Anthropic is first of the two companies under commercial, the parser saves `{ position: 1, totalCandidates: 2 }`, which reads like a dominant result but describes a two-item sub-list. And saving rankings for the competitors is worse, because a list item might be a bare company name or a full paragraph describing one, and the parser can't tell the difference, so there's no reliable way to know what the other items in the list even are.
+The deeper problem was that structure isn't semantics, and ranking exposed it. Because position comes from where a brand sits in a list, the ranking is only ever scoped to whatever list it appeared in, not the response as a whole.
+
+Say we're tracking Anthropic and a response names ten AI companies grouped into categories (commercial, non-profit, alignment-focused). If Anthropic is first of the two companies under commercial, the parser saves `{ position: 1, totalCandidates: 2 }`, which reads like a dominant result but describes a two-item sub-list.
+
+And saving rankings for the competitors is worse, because a list item might be a bare company name or a full paragraph describing one, and the parser can't tell the difference, so there's no reliable way to know what the other items in the list even are.
 
 So we went back to the two-pass LLM approach, which got expensive quickly and had a maintenance problem: every new model meant updating the registry but the bigger issue was that an API call to `gpt-4o-mini` is not what a user sees in ChatGPT; the consumer apps are loaded with tools, search and tuning that the raw APIs don't have.
 
@@ -58,7 +62,9 @@ The version that was finalized scrapes the actual consumer apps. Each evaluation
 
 All of this runs on background workers, and the obvious move was BullMQ or an equivalent. We skipped it because every queue library means another piece of infrastructure to run (Redis, in BullMQ's case) and MongoDB was already there.
 
-Instead the prompts collection is the queue. Each worker is an infinite while loop that claims work with a single atomic `findOneAndUpdate`: find a prompt that's active, due for evaluation, and either unlocked or holding a lock older than the timeout, then set its lock timestamp in the same operation. Atomicity of the update is the mutual exclusion; two workers can race for the same prompt but Mongo guarantees only one wins. A sort on priority and last-run time gives fair scheduling, a reaper marks runs that exceeded the lock timeout so crashed workers can't strand a prompt forever, and every run is audited into a jobs collection with a ULID run id, status log and the worker's pid and hostname. The same claim-with-a-lock pattern got reused for DNS verification and article generation workers.
+Instead the prompts collection is the queue. Each worker is an infinite while loop that claims work with a single atomic `findOneAndUpdate`: find a prompt that's active, due for evaluation, and either unlocked or holding a lock older than the timeout, then set its lock timestamp in the same operation. Atomicity of the update is the mutual exclusion; two workers can race for the same prompt but Mongo guarantees only one wins.
+
+A sort on priority and last-run time gives fair scheduling, a reaper marks runs that exceeded the lock timeout so crashed workers can't strand a prompt forever, and every run is audited into a jobs collection with a ULID run id, status log and the worker's pid and hostname. The same claim-with-a-lock pattern got reused for DNS verification and article generation workers.
 
 ### Multi-Tenant Blogs
 
@@ -70,7 +76,11 @@ But that only works if your domain isn't proxied through a service like Cloudfla
 
 Domains get periodically revalidated the same way, to invalidate any that stop pointing at us later. SSL is Caddy's on-demand TLS on the VM, which issues a cert the first time a verified hostname gets a request, so there's no cert provisioning step in our code at all.
 
-Once a domain is verified, routing is the easy part precisely because the CNAME already does the work. A visitor hits `blog.advtszn.xyz`, the propagated CNAME resolves that to our blog frontend, and the same Next.js site serves every tenant. On each request the frontend reads its own Host header and calls the backend with that hostname; a backend middleware looks the domain up, resolves it to a project, and attaches that `projectId` onto the request context before any handler runs. From there the handlers are tenant-agnostic: they just read `projectId` off the context and scope their aggregation and article queries to it, so the exact same code path serves a different blog depending only on which domain the request came in on.
+Once a domain is verified, routing is the easy part precisely because the CNAME already does the work. A visitor hits `blog.advtszn.xyz`, the propagated CNAME resolves that to our blog frontend, and the same Next.js site serves every tenant.
+
+On each request the frontend reads its own Host header and calls the backend with that hostname; a backend middleware looks the domain up, resolves it to a project, and attaches that `projectId` onto the request context before any handler runs.
+
+From there the handlers are tenant-agnostic: they just read `projectId` off the context and scope their aggregation and article queries to it, so the exact same code path serves a different blog depending only on which domain the request came in on.
 
 What does that challenge actually guarantee? The obvious worry is a malicious actor standing up a site at the requested domain and serving us the nonce. To do that they'd have to make the challenge endpoint return the header, which means controlling either the domain's DNS or the server it already resolves to. The only way that happens for a domain someone doesn't own is if that domain's DNS panel is compromised, and at that point the attacker can reissue TLS certs, intercept email and redirect the whole domain, its a security failure on user's end -- not on us.
 

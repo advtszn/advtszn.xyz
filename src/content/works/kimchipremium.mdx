@@ -79,7 +79,11 @@ What isn't built is rotating proxies, and that's the gap that matters as the sou
 
 ### Smarter Deduplication
 
-Right now deduplication is that per-source watermark: each source remembers the newest headline it saw last run, and everything above it is treated as new. It's cheap, but it's positional rather than set membership, so anything a source inserts below the watermark between runs is silently skipped. It's also fine only while each source covers different stories, but as more sources get added they inevitably cover the same news. Two outlets reporting on the same SEC ruling will have completely different headlines, and the current system would treat them as two separate stories. At scale, that means the Telegram channel and website get flooded with near-duplicate content. The fix would be fuzzy matching, comparing incoming headlines against recent entries using semantic similarity rather than exact string matching, so the system can recognize that two differently worded headlines are about the same event and merge them instead of publishing both. Semantic deduping actually got prototyped early on and was dropped in a later refactor, so this is less a new idea than an unfinished one.
+Right now deduplication is that per-source watermark: each source remembers the newest headline it saw last run, and everything above it is treated as new. It's cheap, but it's positional rather than set membership, so anything a source inserts below the watermark between runs is silently skipped.
+
+It's also fine only while each source covers different stories, but as more sources get added they inevitably cover the same news. Two outlets reporting on the same SEC ruling will have completely different headlines, and the current system would treat them as two separate stories. At scale, that means the Telegram channel and website get flooded with near-duplicate content.
+
+The fix would be fuzzy matching, comparing incoming headlines against recent entries using semantic similarity rather than exact string matching, so the system can recognize that two differently worded headlines are about the same event and merge them instead of publishing both. Semantic deduping actually got prototyped early on and was dropped in a later refactor, so this is less a new idea than an unfinished one.
 
 
 ## Visuals
