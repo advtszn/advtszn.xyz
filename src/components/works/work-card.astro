@@ -11,8 +11,8 @@ interface Props {
 const { work, compact = false, loading = "lazy" } = Astro.props;
 ---
 
-<a href={`/works/${work.id}`} class="space-y-4 group">
-  <div class="aspect-video rounded">
+<a href={`/work/${work.id}`} class="space-y-2 group">
+  <div class="aspect-video rounded group">
     <Image
       src={work.data.thumbnail}
       width={1024}
@@ -22,15 +22,11 @@ const { work, compact = false, loading = "lazy" } = Astro.props;
       loading={loading}
     />
   </div>
-  <div class="space-y-1">
-    {
-      compact ? (
-        <h3 class="font-heading text-lg font-medium">{work.data.title}</h3>
-      ) : (
-        <h2 class="font-heading text-xl font-medium">{work.data.title}</h2>
-      )
-    }
-    <p class:list={["text-muted-foreground", compact && "text-sm"]}>
+  <div class="space-y-">
+    <h3 class="font-heading text-lg font-medium text-foreground">
+      {work.data.title}
+    </h3>
+    <p class:list={["text-muted-foreground text-sm"]}>
       {work.data.category} • {work.data.role}
     </p>
   </div>

@@ -40,7 +40,7 @@ const formatDate = (date: Date): string => {
       <div class="space-y-6">
         <a
           href="/works"
-          class="text-muted-foreground hover:text-foreground flex text-sm items-center pt-2 transition-colors group w-fit"
+          class="text-muted-foreground hover:text-foreground flex text-sm font-medium items-center pt-2 transition-colors group w-fit"
         >
           <ArrowLeft
             size={16}
@@ -48,7 +48,7 @@ const formatDate = (date: Date): string => {
           /> back to works
         </a>
         <div class="flex items-center justify-between mb-12">
-          <h1 class="font-heading text-3xl font-medium md:text-5xl">
+          <h1 class="font-heading text-3xl font-medium text-foreground">
             {work.data.title}
           </h1>
           <p class="font-medium text-sm text-muted-foreground tabular-nums">
@@ -62,11 +62,13 @@ const formatDate = (date: Date): string => {
           <div class="md:w-1/2">
             <div class="flex gap-6 md:gap-12 flex-col">
               <div class="space-y-1">
-                <h2 class="font-heading text-lg font-medium">timeline</h2>
+                <h2 class="font-heading text-foreground font-medium">
+                  timeline
+                </h2>
                 <p class="text-muted-foreground">{work.data.timeline}</p>
               </div>
               <div class="space-y-1">
-                <h2 class="font-heading text-lg font-medium">live</h2>
+                <h2 class="font-heading text-foreground font-medium">live</h2>
                 <p class="text-muted-foreground">
                   {
                     work.data.url ? (
@@ -86,7 +88,7 @@ const formatDate = (date: Date): string => {
                 </p>
               </div>
               <div class="space-y-1">
-                <h2 class="font-heading text-lg font-medium">tech</h2>
+                <h2 class="font-heading text-foreground font-medium">tech</h2>
                 <p class="text-muted-foreground">{work.data.tech.join(", ")}</p>
               </div>
             </div>
@@ -95,13 +97,17 @@ const formatDate = (date: Date): string => {
           <div class="md:w-1/2">
             <div class="flex gap-6 md:gap-12 flex-col">
               <div class="space-y-1">
-                <h2 class="font-heading text-lg font-medium">overview</h2>
+                <h2 class="font-heading text-foreground font-medium">
+                  overview
+                </h2>
                 <p class="text-muted-foreground text-justify">
                   {work.data.overview}
                 </p>
               </div>
               <div class="space-y-1">
-                <h2 class="font-heading text-lg font-medium">what i built</h2>
+                <h2 class="font-heading text-foreground font-medium">
+                  what i built
+                </h2>
                 <p class="text-muted-foreground text-justify">
                   {work.data.contribution}
                 </p>
@@ -119,8 +125,10 @@ const formatDate = (date: Date): string => {
       {
         others.length > 0 && (
           <div class="mb-20 py-10 border-t space-y-6">
-            <h2 class="font-heading text-2xl font-medium">more works</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-4">
+            <h2 class="font-heading text-foreground text-2xl font-medium">
+              more works
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-x-2">
               {others.map((other) => (
                 <WorkCard work={other} compact />
               ))}

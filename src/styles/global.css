@@ -192,7 +192,7 @@
 
 /* Images */
 .mdx img {
-  @apply mx-auto my-12 rounded-md;
+  @apply mx-auto rounded-md;
 }
 
 .mdx p {
