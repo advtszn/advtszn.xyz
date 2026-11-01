@@ -1,9 +1,9 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { cn } from "~/lib/utils";
 
 interface WorkItemProps {
   title: string;
-  url?: string;
+  href: string;
   date: Date;
   isActive: boolean;
   onSelect: (e: React.MouseEvent) => void;
@@ -18,42 +18,35 @@ const formatDate = (date: Date): string => {
 
 export function WorkItem({
   title,
-  url,
+  href,
   date,
   isActive,
   onSelect,
   onHover,
   onLeave,
 }: WorkItemProps) {
-  const className = cn("cursor-pointer px-1 text-left text-lg", {
-    "bg-muted text-muted-foreground": isActive,
-  });
-
   return (
     <li
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
       className="group relative flex items-center gap-y-2 font-medium"
     >
-      {url ? (
-        <a
-          href={url}
-          target="_blank"
-          onClick={onSelect}
-          className={cn(className, "inline-flex items-center gap-x-1")}
-        >
-          {title}
-          <ArrowUpRight className="size-4" />
-        </a>
-      ) : (
-        <p onClick={onSelect} className={className}>
-          {title}
-        </p>
-      )}
+      <a
+        href={href}
+        onClick={onSelect}
+        className={cn("inline-flex cursor-pointer items-center gap-x-1 px-1 text-left text-lg", {
+          "bg-muted text-muted-foreground": isActive,
+        })}
+      >
+        {title}
+        <ArrowRight className="size-4" />
+      </a>
 
       <span className="mx-1.5 flex-1 border-t" />
 
-      <p className="text-muted-foreground text-right text-sm">{date ? formatDate(date) : "N/A"}</p>
+      <p className="text-muted-foreground text-right text-sm tabular-nums">
+        {date ? formatDate(date) : "N/A"}
+      </p>
     </li>
   );
 }

@@ -1,0 +1,100 @@
+---
+title: Listable Labs
+category: work
+role: backend
+tech:
+  - typescript
+  - nodejs
+  - expressjs
+  - mongodb
+  - react router
+url: https://listablelabs.com
+date: 2026-01-29
+featured: true
+thumbnail: /images/listable-labs/thumbnail.png
+timeline: 3 months
+overview: Listable Labs is an AEO/GEO analytics platform that tracks how brands appear in LLM responses - share of voice, competitor mentions, geographic performance, and actionable recommendations to boost presence.
+contribution: Owned end-to-end backend development for the product. Built the evaluation pipeline to generate, process and classify LLM responses into the metrics. Implemented a distributed lock pattern using MongoDB's atomic findAndUpdate for reliable background job processing. Designed and shipped multi-tenant blog infrastructure with custom domain support, DNS verification, and GEO-optimized blog sites.
+---
+
+import Screenshot from "~/components/common/screenshot.astro";
+import dashboardOverview from "~/assets/images/listable-labs/dashboard-overview.png";
+import dashboardVisibility from "~/assets/images/listable-labs/dashboard-visibility.png";
+import dashboardMentions from "~/assets/images/listable-labs/dashboard-mentions.png";
+import dashboardPrompts from "~/assets/images/listable-labs/dashboard-prompts.png";
+import dashboardPromptDetail from "~/assets/images/listable-labs/dashboard-prompt-detail.png";
+import dashboardSuggestions from "~/assets/images/listable-labs/dashboard-suggestions.png";
+import dashboardArticles from "~/assets/images/listable-labs/dashboard-articles.png";
+import dashboardArticleDetail from "~/assets/images/listable-labs/dashboard-article-detail.png";
+import accountIntegrations from "~/assets/images/listable-labs/account-integrations.png";
+import multiTenantArchitecture from "~/assets/images/listable-labs/multi-tenant-architecture.png";
+
+
+
+## Deep Dive
+
+Listable answers one question for brands: when someone asks ChatGPT, Gemini or Perplexity "what's the best X", do you show up? Every tracked prompt gets evaluated on a schedule across all three, the responses get classified into mentions, positions and share of voice, and the gaps between you and whoever outranked you get turned into concrete recommendations.
+
+### Four Iterations of the Evaluation Pipeline
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+  <Screenshot src={dashboardPrompts} alt="Listable Labs prompts table showing tracked prompts and their status" />
+  <Screenshot src={dashboardPromptDetail} alt="Prompt detail view with response history and metrics" />
+</div>
+
+The classification problem sounds simple (given an LLM response, figure out which brands are mentioned and where) and we got it wrong three times.
+
+The first version was a two-pass LLM setup: one call generates the response, a second call evaluates and classifies it. It worked, but using an LLM to read another LLM's output felt like overkill, so we replaced it with something deterministic. (We were wrong about the overkill part, but that took a while to surface.)
+
+The deterministic version was a small markdown AST parser I wrote: walk the response, find any ordered or unordered list, check if the brand appears in it, and treat every other brand in the same list as a competitor and the sources and citation urls were extracted similarly. It was fast and free, and it was off. Brands don't appear in responses under one canonical name; if wldd showed up as "wubba lubba dub dub" the parser counted it as no mention at all. Aliases, abbreviations and stylized names made the whole thing miss constantly.
+
+The deeper problem was that structure isn't semantics, and ranking exposed it. Because position comes from where a brand sits in a list, the ranking is only ever scoped to whatever list it appeared in, not the response as a whole. Say we're tracking Anthropic and a response names ten AI companies grouped into categories (commercial, non-profit, alignment-focused). If Anthropic is first of the two companies under commercial, the parser saves `{ position: 1, totalCandidates: 2 }`, which reads like a dominant result but describes a two-item sub-list. And saving rankings for the competitors is worse, because a list item might be a bare company name or a full paragraph describing one, and the parser can't tell the difference, so there's no reliable way to know what the other items in the list even are.
+
+So we went back to the two-pass LLM approach, which got expensive quickly and had a maintenance problem: every new model meant updating the registry but the bigger issue was that an API call to `gpt-4o-mini` is not what a user sees in ChatGPT; the consumer apps are loaded with tools, search and tuning that the raw APIs don't have.
+
+The version that was finalized scrapes the actual consumer apps. Each evaluation fans out to three pipelines in parallel (ChatGPT, Perplexity, and Google's AI Mode), triggered through a browser webscraping service, so the response is what a real user would see. The scraped answer then gets passed to an LLM, which classifies the mentions, positions and cited sources into the metrics.
+
+### Background Jobs Without a Queue
+
+All of this runs on background workers, and the obvious move was BullMQ or an equivalent. We skipped it because every queue library means another piece of infrastructure to run (Redis, in BullMQ's case) and MongoDB was already there.
+
+Instead the prompts collection is the queue. Each worker is an infinite while loop that claims work with a single atomic `findOneAndUpdate`: find a prompt that's active, due for evaluation, and either unlocked or holding a lock older than the timeout, then set its lock timestamp in the same operation. Atomicity of the update is the mutual exclusion; two workers can race for the same prompt but Mongo guarantees only one wins. A sort on priority and last-run time gives fair scheduling, a reaper marks runs that exceeded the lock timeout so crashed workers can't strand a prompt forever, and every run is audited into a jobs collection with a ULID run id, status log and the worker's pid and hostname. The same claim-with-a-lock pattern got reused for DNS verification and article generation workers.
+
+### Multi-Tenant Blogs
+
+<Screenshot src={multiTenantArchitecture} alt="Blog multi-tenancy sequence diagram: dashboard connects a domain, backend stores the CNAME record, a job polls for propagation, and the blog frontend resolves tenants from the Host header" />
+
+Every project gets a hosted, GEO-optimized blog on its own subdomain. Honestly, this part was the most interesting one and simpler than it looked. The flow is: connect a domain, you get a CNAME record, a background worker (same MongoDB lock pattern as the evaluation job) polls the domain's DNS records via node's built-in `resolveCname` and marks propagation successful once the expected record resolves for the CNAME.
+
+But that only works if your domain isn't proxied through a service like Cloudflare. Behind a proxy you'll never get a value for the CNAME. So we worked backwards: what if instead of verifying records we verified the propagation directly? The multi-tenant blog site is a Next.js site, so the job was refactored to send a HEAD request to the requested domain's challenge endpoint and check whether the response headers contained an `x-listable-challenge` header with the desired challenge nonce. Since only our frontend sets that header with that value, a matching response proves the CNAME points at us.
+
+Domains get periodically revalidated the same way, to invalidate any that stop pointing at us later. SSL is Caddy's on-demand TLS on the VM, which issues a cert the first time a verified hostname gets a request, so there's no cert provisioning step in our code at all.
+
+Once a domain is verified, routing is the easy part precisely because the CNAME already does the work. A visitor hits `blog.advtszn.xyz`, the propagated CNAME resolves that to our blog frontend, and the same Next.js site serves every tenant. On each request the frontend reads its own Host header and calls the backend with that hostname; a backend middleware looks the domain up, resolves it to a project, and attaches that `projectId` onto the request context before any handler runs. From there the handlers are tenant-agnostic: they just read `projectId` off the context and scope their aggregation and article queries to it, so the exact same code path serves a different blog depending only on which domain the request came in on.
+
+What does that challenge actually guarantee? The obvious worry is a malicious actor standing up a site at the requested domain and serving us the nonce. To do that they'd have to make the challenge endpoint return the header, which means controlling either the domain's DNS or the server it already resolves to. The only way that happens for a domain someone doesn't own is if that domain's DNS panel is compromised, and at that point the attacker can reissue TLS certs, intercept email and redirect the whole domain, its a security failure on user's end -- not on us.
+
+The nonce being predictable doesn't matter either, which is the part that makes the scheme sound rather than just probably-fine. It isn't a bearer token; its value is bound to "this domain routes to us and resolves to this project." Whoever connects a domain already knows their own nonce, and knowing it buys nothing, because they still have to serve it from a domain they control. The gate is domain control, never nonce secrecy. The one thing this (or any control-based check) can't prove is authorization inside an org, a rogue contractor with temporary DNS access could point a company domain at a personal project, but that's the accepted industry bar and the same gap TXT verification has.
+
+Two things got deliberately cut from the design doc. Apex domains are rejected at validation (subdomains only), because supporting them means handing customers the VM's IP address for an A record, and that IP was going to change. And TXT-record ownership verification was dropped entirely; instead, connecting a domain that's already attached to another project is simply rejected. The challenge check already proves control of the domain, so the nonce-generation and DNS-polling flow bought nothing worth its complexity.
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+  <Screenshot src={dashboardArticles} alt="Articles table showing published blog content" />
+  <Screenshot src={dashboardArticleDetail} alt="Article editor with rich text and metadata sidebar" />
+</div>
+
+### Closing the Loop with Google Search Console
+
+Published articles are only useful if they get indexed, so the last piece connects each project to Google Search Console. The OAuth tokens are stored per project with automatic refresh, and the integration handles both GSC property styles (domain properties and URL-prefix properties) when matching the connected blog domain against the user's Search Console account. On publish, the blog's sitemap gets submitted against the matched property, so new articles enter Google's crawl queue without anyone opening Search Console.
+
+<Screenshot src={accountIntegrations} alt="Account integrations page showing Google Search Console connection" />
+
+
+## Visuals
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-12 place-items-center">
+  <Screenshot src={dashboardOverview} alt="Listable Labs dashboard overview with active projects and article metrics" />
+  <Screenshot src={dashboardVisibility} alt="Listable Labs visibility metrics showing share of voice and average position" />
+  <Screenshot src={dashboardMentions} alt="Listable Labs mention metrics across LLM providers with position distribution" />
+  <Screenshot src={dashboardSuggestions} alt="Listable Labs suggestions with actionable recommendations to boost presence" />
+</div>

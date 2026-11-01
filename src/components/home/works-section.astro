@@ -1,60 +1,9 @@
 ---
-import { Image } from "astro:assets";
 import { ArrowUpRight } from "lucide-react";
+import WorkCard from "~/components/works/work-card.astro";
+import { getSortedWorks } from "~/lib/works";
 
-interface Work {
-  slug: string;
-  title: string;
-  thumbnail: string;
-  role: string;
-  category: string;
-}
-
-const works: Work[] = [
-  {
-    title: "pitchcraft",
-    slug: "pitchcraft",
-    category: "side project",
-    role: "fullstack",
-    thumbnail: "https://works.advtszn.xyz/images/pitchcraft/thumbnail.png",
-  },
-  {
-    title: "orbe",
-    slug: "orbe",
-    category: "product",
-    role: "full stack",
-    thumbnail: "https://works.advtszn.xyz/images/orbe/thumbnail.png",
-  },
-  {
-    title: "listable labs",
-    slug: "listable-labs",
-    category: "work",
-    role: "backend",
-    thumbnail: "https://works.advtszn.xyz/images/listable-labs/thumbnail.png",
-  },
-  {
-    title: "kirrin",
-    slug: "kirrin",
-    category: "product",
-    role: "fullstack",
-    thumbnail: "https://works.advtszn.xyz/images/kirrin/thumbnail.png",
-  },
-  {
-    title: "the kimchi premium",
-    slug: "kimchipremium",
-    category: "work",
-    role: "backend",
-    thumbnail: "https://works.advtszn.xyz/images/kimchipremium/thumbnail.png",
-  },
-  {
-    title: "oilstream solutions",
-    slug: "oilstream-solutions",
-    category: "work",
-    role: "backend",
-    thumbnail:
-      "https://works.advtszn.xyz/images/oilstream-solutions/thumbnail.png",
-  },
-];
+const works = (await getSortedWorks()).slice(0, 6);
 ---
 
 <section class="space-y-6">
@@ -63,10 +12,12 @@ const works: Work[] = [
       <h2 class="text-2xl text-foreground font-medium">works</h2>
       <a
         href={"/works"}
-        class="inline-flex items-center gap-x-1 text-sm font-medium hover:text-foreground transition-colors"
+        class="inline-flex items-center gap-x-1 text-sm font-medium hover:text-foreground transition-colors group"
       >
         view all
-        <ArrowUpRight className="size-3" />
+        <ArrowUpRight
+          className="size-3 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+        />
       </a>
     </div>
   </div>
@@ -75,30 +26,7 @@ const works: Work[] = [
     <div
       class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-x-2"
     >
-      {
-        works.map((work) => (
-          <a href={`/work/${work.slug}`} class="space-y-2 group">
-            <div class="aspect-video rounded group">
-              <Image
-                src={work.thumbnail}
-                width={1024}
-                height={576}
-                class="h-full w-full object-cover rounded pointer-fine:grayscale pointer-fine:group-hover:grayscale-0 transition-all duration-500"
-                alt={work.title}
-                loading={"eager"}
-              />
-            </div>
-            <div class="space-y-">
-              <h3 class="font-heading text-lg font-medium text-foreground">
-                {work.title}
-              </h3>
-              <p class:list={["text-muted-foreground text-sm"]}>
-                {work.category} • {work.role}
-              </p>
-            </div>
-          </a>
-        ))
-      }
+      {works.map((work) => <WorkCard work={work} compact loading="eager" />)}
     </div>
   </div>
 </section>

@@ -1,8 +1,92 @@
 ---
-title: kimchipremium.io
-role: product engineer
+title: The Kimchi Premium
+category: internship
+role: fullstack
+tech:
+  - typescript
+  - python
+  - hono
+  - bullmq
+  - astro
+  - sanity
+date: 2025-05-09
+featured: true
 url: https://kimchipremium.io
-date: 2025-05-01
+thumbnail: /images/kimchipremium/thumbnail.png
+timeline: 3 months
+overview: Crypto news is dominated by English-language sources, leaving Korean traders relying on delayed or secondhand translations. Kimchi Premium is a bilingual crypto news aggregator that delivers real-time alpha to Korean crypto communities by scraping, summarizing, and translating headlines from major English-language sources into Korean.
+contribution: Built the end-to-end ETL pipeline, webhook backend, job processing system, and bilingual distribution layer across Telegram and the public website.
 ---
 
-solo product eng. built event driven backends, automations and ETLs with LLMs in the loop for a multi-lingual news aggregator
+import Screenshot from "~/components/common/screenshot.astro";
+import desktopHero from "~/assets/images/kimchipremium/desktop-hero.png";
+import ipadArticles from "~/assets/images/kimchipremium/ipad-articles.png";
+import iphoneNews from "~/assets/images/kimchipremium/iphone-news.png";
+
+import pipelineDiagram from "~/assets/images/kimchipremium/pipeline-diagram.png";
+
+
+
+## Deep Dive
+
+
+Most crypto content on the internet lives in English: Twitter threads, blog posts, protocol announcements, news desks. In a country like South Korea, where English isn't the first language for most, that leaves a whole trading community reading crypto news secondhand.
+
+By the time any of it reaches Korean traders, it's already been through a game of telephone. Someone screenshots a tweet, someone else paraphrases it in a group chat, and by the time it lands in a Telegram channel the nuance is gone. Kimchi Premium closes that gap, not by finding news nobody else has, but by getting the news that already exists to the people who couldn't read it yet.
+
+### How It Works
+
+<Screenshot src={pipelineDiagram} alt="Kimchi Premium ETL pipeline architecture showing ingestion, processing, and delivery stages" />
+
+The mechanics are simple. Every 15 minutes, the system scrapes headlines from five crypto news sources, generates a concise summary of each article, translates both the headline and summary into Korean, and pushes the result out to a Telegram channel and a public website, all without human intervention.
+
+The end-to-end latency from an article being published to it appearing translated in the Telegram channel is under a few minutes. Fast enough that Korean traders are reading the same news as English-speaking traders, not a translated digest hours later.
+
+### The Scraper
+
+A Python ETL script runs on a cron schedule via GitHub Actions. Each source is driven through Playwright in its own headless Chromium session, results are normalized into a common format, and the batch is deduplicated against a per-source watermark: Redis holds the newest headline from the previous run, and the current run locates that headline in the fetched list and slices off everything above it. What's left is forwarded as a single payload to a webhook endpoint.
+
+GitHub Actions was a deliberate choice over a self-hosted cron. No server to maintain, no uptime to worry about, and the 15-minute interval fits comfortably within free-tier limits.
+
+### Job Processing
+
+The webhook endpoint is a Hono server that receives the batched headlines and fans them out, dispatching one BullMQ job per headline. Each job hits Gemini API to generate a summary of the original article, then runs a second pass to translate both the headline and summary into Korean.
+
+BullMQ handles retry logic and concurrency control. If an LLM call fails or rate-limits, the job gets retried automatically rather than dropping the headline silently. This matters when a single cycle carries anywhere from a couple of headlines to thirty-odd when the news flow spikes, and one flaky API response shouldn't mean a missed story.
+
+### Distribution
+
+The processed content is then pushed to telegram channel (korean only) and sanity cms (both english and korean).
+
+The Telegram channel is the real-time alpha channel, optimized for speed. Traders get a notification, scan the headline, and decide whether to act. The public website is built with Astro and pulls content from Sanity CMS. It serves both English and Korean versions of every page and doubles as an SEO play. Telegram handles the real-time push while the website invites organic traffic.
+
+
+## How I'd Scale This
+
+On a typical day the pipeline processed around 100 headlines, with a peak of 278 in a single day, but as more sources get added the bottlenecks become obvious.
+
+### Replacing Sanity CMS
+
+The first thing that breaks is Sanity. At higher volumes, Sanity's API rate limits start throttling write throughput, and the storage costs add up fast. Sanity stores version history, draft states, and other CMS metadata alongside your actual content, so the storage footprint balloons well beyond the raw article data. For a system that's generating a few thousand documents a month with no need for collaborative editing workflows, that overhead isn't worth paying for.
+
+The move would be to swap Sanity for MongoDB. A document store gives the same schema flexibility without the CMS baggage, and writes scale linearly without hitting API rate limits. For the cases where an author needs to manually edit a translated headline or fix a summary, a lightweight content management UI could be built on top. Nothing fancy, just enough to browse, search, and edit articles. That replaces the one part of Sanity that was actually useful without inheriting everything that wasn't.
+
+### Surviving Source Blocks
+
+The second scaling problem is the scrapers themselves getting blocked. The fingerprint side of this is already handled: every provider is wrapped in a middleware that launches headless Chromium with a randomly chosen device profile per run, overrides `navigator.webdriver` so the browser stops announcing itself as automated, and pads each run with randomized delays instead of hammering pages at machine speed. That's enough to get past the naive checks that catch a plain HTTP client.
+
+What isn't built is rotating proxies, and that's the gap that matters as the source list grows. Fingerprint randomization does nothing about the fact that every request still leaves from one GitHub Actions IP range, so rate limiting and IP blocking are the next wall. Past that, if a source starts serving CAPTCHAs or JavaScript challenges that headless Chromium can't clear, the escalation is running headful against a real browser profile. That comes with its own cost and complexity, so it only makes sense for sources high-value enough to justify the overhead.
+
+### Smarter Deduplication
+
+Right now deduplication is that per-source watermark: each source remembers the newest headline it saw last run, and everything above it is treated as new. It's cheap, but it's positional rather than set membership, so anything a source inserts below the watermark between runs is silently skipped. It's also fine only while each source covers different stories, but as more sources get added they inevitably cover the same news. Two outlets reporting on the same SEC ruling will have completely different headlines, and the current system would treat them as two separate stories. At scale, that means the Telegram channel and website get flooded with near-duplicate content. The fix would be fuzzy matching, comparing incoming headlines against recent entries using semantic similarity rather than exact string matching, so the system can recognize that two differently worded headlines are about the same event and merge them instead of publishing both. Semantic deduping actually got prototyped early on and was dropped in a later refactor, so this is less a new idea than an unfinished one.
+
+
+## Visuals
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-12 place-items-center">
+  <Screenshot src={desktopHero} alt="Kimchi Premium homepage on desktop showing featured article and navigation" />
+  <Screenshot src={ipadArticles} alt="Kimchi Premium articles grid on iPad with crypto news thumbnails" />
+  <Screenshot src={iphoneNews} alt="Kimchi Premium live news feed on iPhone showing translated headlines" />
+
+</div>

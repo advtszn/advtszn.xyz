@@ -1,0 +1,118 @@
+---
+title: orbe
+category: product
+role: fullstack
+tech:
+  - typescript
+  - nextjs
+  - trpc
+  - drizzle
+url: https://orbe.advtszn.xyz
+date: 2026-04-15
+featured: true
+thumbnail: /images/orbe/thumbnail.png
+timeline: 3 months
+overview: Orbe is an outreach OS for freelancers and solo operators. Drop in a lead's work email or LinkedIn profile, let the system auto-enrich it and send hyper-personalized emails that are written by AI but feel human.
+contribution: Built the entire product solo as my final year capstone project.
+---
+
+import Screenshot from "~/components/common/screenshot.astro";
+import onboardingWebsite from "~/assets/images/orbe/workspace-onboarding-website.png";
+import onboardingVoice from "~/assets/images/orbe/workspace-onboarding-voice.png";
+import onboardingContact from "~/assets/images/orbe/workspace-onboarding-contact.png";
+import workspaces from "~/assets/images/orbe/workspaces.png";
+import offerings from "~/assets/images/orbe/offerings.png";
+import offeringDetail from "~/assets/images/orbe/offering-detail.png";
+import leads from "~/assets/images/orbe/leads.png";
+import leadDetail from "~/assets/images/orbe/lead-detail.png";
+import integrations from "~/assets/images/orbe/integrations.png";
+import integrationDetail from "~/assets/images/orbe/integration-detail.png";
+import campaigns from "~/assets/images/orbe/campaigns.png";
+import campaignDetail from "~/assets/images/orbe/campaign-detail.png";
+import enrichmentPipeline from "~/assets/images/orbe/enrichment-pipeline.png";
+
+## Deep Dive
+
+### The Solo Operator Has No Sales Team
+
+Client acquisition software is built for sales teams. CRMs, outreach platforms, enrichment tools, all of it assumes there's a person, or a whole department, whose only job is running the pipeline. Companies and agencies have that. A dedicated sales person handles inbound and outbound and closes deals while everyone else does the work.
+
+Freelancers and solo operators are the part of the world that gets none of that. There's no one doing acquisition for them; their pipeline is a Gmail inbox and their sales team is themselves. So every hour spent chasing the next client is an hour not spent on the craft that client is paying for, and outreach and delivery end up competing for the same time. That's the constant across every freelancing subreddit I lurked in, whether it's a beginner grinding cold DMs to land anyone at all or an established name still working their referral network by hand.
+
+### The Idea
+
+Orbe is [Valley](https://www.joinvalley.co/), but for freelancers and solo operators. Imagine an OS-like piece of software that automates your outreach end to end. All you bring is a lead's work email or LinkedIn profile. The system auto-enriches it into a full picture: their job profile, their business, their ICP. That context then drives hyper-personalized outreach, emails that are sent by AI but feel human.
+
+The philosophy behind it is old sales wisdom: observe your client, stalk them. The work done before the actual work matters more than the actual work. Orbe just makes the stalking automatic.
+
+### Onboarding
+
+Setup is built to get you from zero to outreach-ready with one input: your website. Orbe analyzes it to create your first offering, then mines it again for the DOs and DON'Ts of your voice, so every email it writes sounds like you and not like a model. Add your timezone and meeting link and the workspace is live.
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-2 my-12 place-items-center">
+  <Screenshot src={onboardingWebsite} alt="Workspace onboarding: enter your website to generate your first offering" />
+  <Screenshot src={onboardingVoice} alt="Workspace onboarding: voice DOs and DON'Ts extracted from your website" />
+  <Screenshot src={onboardingContact} alt="Workspace onboarding: timezone and meeting link" />
+</div>
+
+### Offerings
+
+An offering is any service you sell. Some freelancers have one, some have five, and each can be created by hand or extracted from a URL. Offerings are what campaigns pitch, so the better they're defined, the sharper the outreach.
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-2 my-12 place-items-center">
+  <Screenshot src={offerings} alt="Offerings list in a workspace" />
+  <Screenshot src={offeringDetail} alt="Offering detail view" />
+</div>
+
+### Leads, and the Enrichment That Degrades Gracefully
+
+Adding a lead takes a work email or a LinkedIn URL, nothing else. From there a background pipeline builds the full profile, and it's designed to salvage whatever it can from whatever it's given:
+
+- With a LinkedIn profile, it scrapes the person (name, headline, bio, latest role), then follows the trail to their company page (name, website, size), and backfills the lead's website if one was never provided.
+- The business website, whether provided directly or discovered via the company page, gets analyzed for a business description, their ICP, and their beliefs. If the stored website fails, it retries with the company's website. If both fail but the company scrape succeeded, it falls back to the LinkedIn company description.
+- If the role and a verified company site both exist, one more pass writes up what this person actually does at work.
+
+Every step is individually fallible. A failed scrape logs and moves on, partial data still lands on the lead, and null results never overwrite fields that already have values. The lead only gets marked as failed if literally nothing succeeded. Email-only leads skip the LinkedIn stages entirely, so their enrichment is admittedly less kickass, but the email still gets written with whatever context exists.
+
+
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-2 my-12 place-items-center">
+  <Screenshot src={leads} alt="Leads list with enrichment status" />
+  <Screenshot src={leadDetail} alt="Enriched lead detail: business profile, ICP, and work description" />
+</div>
+
+The LinkedIn scraping runs on free-tier APIs from rapidapi, pooled behind a Redis-backed key manager I engineered for this: keys rotate least-recently-used, and any key that hits a rate limit gets benched in a cooldown set until its retry-after expires. I never hit a usage limit at any point in development.
+
+### Campaigns
+
+A campaign is your funnel. Pick the offerings you're pitching, add the leads you're targeting, and start sending. Every draft is generated from the lead's enriched profile, the offering, and your extracted voice, and goes out one by one through your own Gmail, from your real address.
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-2 my-12 place-items-center">
+  <Screenshot src={campaigns} alt="Campaigns list" />
+  <Screenshot src={campaignDetail} alt="Campaign detail: offerings and leads in the funnel" />
+</div>
+
+### Integrations
+
+Gmail is the only integration live today, handling both sending and reply capture through push notifications. The roadmap had LinkedIn and Slack next, and LinkedIn is the one I care about: converting intent signals like comments and reactions on your posts into warm outreach pipelines, so inbound interest feeds the same funnel as cold outbound.
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-2 my-12 place-items-center">
+  <Screenshot src={integrations} alt="Integrations page with Gmail connected" />
+  <Screenshot src={integrationDetail} alt="Gmail integration detail" />
+</div>
+
+### What the Deadline Ate
+
+This was my final year capstone project, so parts of it were rushed, and I'll own that. The outreach status logic is currently hardcoded (and honestly, vibe coded). The real design classifies the intent of every reply, updates the lead's status accordingly, and sends the response with an optional human in the loop, until every lead terminates as either converted or ghosted. The inbound side of the automation never got built at all. Both are the first things I'd do next.
+
+### There's more to this
+
+The thing I hardly researched during this build was making the AI drafts as human as possible. Extracting voice DOs and DON'Ts from the user's website was the first step, but just injecting that into the system prompt was just a low effort personalization, im sure there's a deep rabbit hole between "an email written by AI" and "an email a real person would send," and closing that gap is the core of the product.
+
+Campaigns were rushed too, and honestly the whole concept is a placeholder, corporate sales lingo like this was never supposed to make it into the system. What was supposed to replace it is playbooks. A playbook is just an outreach sequence: set up your email templates, or don't (let AI write it for you), then build the workflow you already run in your head. Start, send the outbound email, wait a few days, follow up, wait again, mark as ghosted. That's what most freelancers would actually want, and probably already do manually. Not a CRM, just their own playbook executed in a no-BS but automated manner for the leads they care about.
+
+### Why Not Valley? Why Not HubSpot?
+
+Traditional CRMs like HubSpot are built for sales teams: too corporate, priced and shaped for headcount, and not AI-native in any real sense. Valley is AI-native, but everything about it is oriented around LinkedIn and Sales Navigator, with signal capture and messaging that live inside LinkedIn's ecosystem, sold to B2B sales teams and agencies.
+
+Nobody is building this for the solo operator whose pipeline is a Gmail inbox and whose "sales team" is themselves between client deliverables. That's the gap Orbe sits in: email-first, one person, zero sales ops.

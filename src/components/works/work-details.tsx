@@ -1,11 +1,9 @@
-import { useEffect, useRef } from "react";
 import type { TWork } from "./works-list";
 
 interface WorkDetailsProps {
   work: TWork;
   showPinHint: boolean;
   showLinkHint: boolean;
-  children: React.ReactNode;
 }
 
 const formatDate = (date: Date): string => {
@@ -13,18 +11,7 @@ const formatDate = (date: Date): string => {
   return `${month}/${date.getFullYear()}`;
 };
 
-export function WorkDetails({ work, showPinHint, showLinkHint, children }: WorkDetailsProps) {
-  const descriptionsRef = useRef<HTMLDivElement>(null);
-
-  // Descriptions are server-rendered MDX passed through the island's slot;
-  // reveal the one matching the selected work.
-  useEffect(() => {
-    const nodes = descriptionsRef.current?.querySelectorAll<HTMLElement>("[data-work-id]");
-    nodes?.forEach((node) => {
-      node.hidden = node.dataset.workId !== work.id;
-    });
-  }, [work.id]);
-
+export function WorkDetails({ work, showPinHint, showLinkHint }: WorkDetailsProps) {
   return (
     <div className="flex-1 lg:max-w-[45%]">
       <div className="space-y-4">
@@ -35,19 +22,18 @@ export function WorkDetails({ work, showPinHint, showLinkHint, children }: WorkD
           </div>
           <div className="flex items-center justify-between text-sm">
             <dt className="text-muted-foreground font-medium">Year</dt>
-            <dd>{work.date ? formatDate(work.date) : "N/A"}</dd>
+            <dd className="tabular-nums">{work.date ? formatDate(work.date) : "N/A"}</dd>
+          </div>
+          <div className="flex items-center justify-between gap-x-6 text-sm">
+            <dt className="text-muted-foreground font-medium">Tech</dt>
+            <dd className="text-right">{work.tech.join(", ")}</dd>
           </div>
         </dl>
 
-        <div
-          ref={descriptionsRef}
-          className="[&_a]:bg-muted [&_a]:text-muted-foreground [&_a]:px-1 [&_a]:font-medium"
-        >
-          {children}
-        </div>
+        <p className="text-justify">{work.overview}</p>
 
         <p className="text-muted-foreground text-sm">
-          {showLinkHint && "Click again to open the link"}
+          {showLinkHint && "Click again to read the case study"}
           {showPinHint && "Click to pin the content"}
         </p>
       </div>

@@ -2,6 +2,7 @@
 import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
 import { ArrowUpRight } from "lucide-react";
+import Link from "../common/link.astro";
 
 const writings = (await getCollection("writings")).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
@@ -27,12 +28,7 @@ const writings = (await getCollection("writings")).sort(
       {
         writings.map(({ id, data: { title } }) => (
           <li class="pl-1.5">
-            <a
-              class="underline underline-offset-4 text-foreground font-medium"
-              href={`/writings/${id}`}
-            >
-              {title}
-            </a>
+            <Link href={`/writings/${id}`}>{title}</Link>
           </li>
         ))
       }

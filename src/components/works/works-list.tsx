@@ -6,18 +6,14 @@ import { WorkItem } from "./work-item";
 
 export type TWork = CollectionEntry<"works">["data"] & { id: string };
 
-export default function WorksList({
-  works,
-  children,
-}: {
-  works: TWork[];
-  children: React.ReactNode;
-}) {
+export default function WorksList({ works }: { works: TWork[] }) {
   const isMobile = useMediaQuery("(max-width: 1023px)");
   const selection = useWorkSelection<TWork>();
 
+  // Every work has a case study now, so the first click always pins the
+  // preview and the second one follows through to it.
   const handleSelect = (e: React.MouseEvent, work: TWork) => {
-    const { shouldNavigate } = selection.select(work, !!work.url);
+    const { shouldNavigate } = selection.select(work, true);
     if (!shouldNavigate) e.preventDefault();
   };
 
@@ -31,7 +27,7 @@ export default function WorksList({
           <WorkItem
             key={work.id}
             title={work.title}
-            url={work.url}
+            href={`/works/${work.id}`}
             date={work.date}
             isActive={selection.isItemActive(work)}
             onSelect={(e) => handleSelect(e, work)}
@@ -45,10 +41,8 @@ export default function WorksList({
         <WorkDetails
           work={selection.displayedItem}
           showPinHint={!isMobile && !selection.isLocked}
-          showLinkHint={selection.isLocked && !!selection.displayedItem.url}
-        >
-          {children}
-        </WorkDetails>
+          showLinkHint={selection.isLocked}
+        />
       )}
     </div>
   );

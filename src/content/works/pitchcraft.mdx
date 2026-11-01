@@ -1,0 +1,150 @@
+---
+title: pitchcraft
+category: side project
+role: fullstack
+url: https://pitchcraft.advtszn.xyz
+tech:
+  - typescript
+  - nextjs
+  - eve
+  - trpc
+  - drizzle
+date: 2026-10-11
+featured: true
+thumbnail: /images/pitchcraft/thumbnail.png
+timeline: 2 days
+overview: >-
+  pitchcraft takes a brand name and hands back a marketing pitch deck written in
+  WLDD's house style, with live research behind every claim. Built over a weekend
+  for WLDD's company-wide internal hackathon.
+contribution: >-
+  Built the whole thing solo: the archive extraction that turns 15 past decks
+  into a style spec, the three concurrent research subagents on eve, the sealed
+  writer that cannot see past its own brief, and the Next.js app that streams the
+  generation and renders the deck as a PDF.
+---
+
+import Screenshot from "~/components/common/screenshot.astro";
+import orchestrator from "~/assets/images/pitchcraft/orchestrator.png";
+import deckCover from "~/assets/images/pitchcraft/deck-cover.png";
+import deckTension from "~/assets/images/pitchcraft/deck-tension.png";
+import deckFormats from "~/assets/images/pitchcraft/deck-formats.png";
+import deckProof from "~/assets/images/pitchcraft/deck-proof.png";
+import researchTrail from "~/assets/images/pitchcraft/research-trail.png";
+import artifact from "~/assets/images/pitchcraft/artifact.png";
+
+<figure class="my-12 flex flex-col items-center gap-2">
+  <video class="rounded max-w-5xl w-full" src="/videos/pitchcraft/demo.mp4" autoplay loop muted playsinline />
+  <figcaption class="text-muted-foreground text-sm">
+    one line in, a deck out: "build a pitch for Coca-Cola", start to finish
+  </figcaption>
+</figure>
+
+## Deep Dive
+
+[WLDD](https://wldd.in) hosted an internal company-wide hackathon during the first week of october and i chose the following problem statement: a system that takes a brand and automatically builds a pitch plan we could send to them. Research on the brand, which of our services fit, and why it is relevant, with everything traceable to something real. The output had to read like a plan a brand would receive, not a summary of our own history.
+
+### The initial idea
+
+One thing never changed from the first night to the demo: the UX was going to be agent-first, and it was going to borrow heavily from [orbe](/works/orbe). I had spent enough time on building a good design system, and with two days on the clock I had no intention of designing a new one from scratch again.
+
+The brief told the shape of the archive, campaign name, client, services pitched and the client's brief, but not how much of it there would be, so I planned for an archive worth mining.
+
+My approach was to build a markdown knowledge base instead of a vector store. Every past pitch in the archive would become a file, structured fields in frontmatter and prose in the body, and every pitch the system generated would get indexed back into the same shape, so the archive grew as the tool got used. That knowledge base would be served as an Astro site, and the agent would reach it over HTTP and curl the pages for their markdown.
+
+A production grade RAG setup is real time, real effort and real money, and at the end of it you have chunks. Markdown is almost free, models are already excellent at reading it, and a small amount of engineering on top buys deeplinked citations as a side effect. The trade off is token cost, which is higher, and I took it, because what you get is RAG-like semantics without having actually built a RAG.
+
+During the pre-build 1:1 with Jayant and Aryan when i shared my approach i was told that the archive is only 15 pitches, not the archive I had designed against, which is not enough rows to build "knowledge" from however carefully you enrich them. And the 1:1 closed the path deliberately rather than by accident.
+
+The 15 pitches then more or less existed to derive how pitch kits are actually written, the pattern, not to serve as runtime source material. The product has to be independent of how much history exists, because it has to work for one-timers and first-timers, brands with no usable past reference. That is the normal case, not the edge case. The moat then came down to the research loop. how context-aware the research is? if diwali is coming up will it suggest a campaign designed around that festival aligned with the brand's rep?
+
+
+### What I Built
+
+I built a multi-agent system on the [orchestrator-worker](https://ai-sdk.dev/docs/agents/workflows#orchestrator-worker) pattern: a root agent that plans the research, farms it out to three specialised workers at once, and composes what they return into a brief for a writer, which streams the pitch back for the app to render as an artifact.
+
+
+<Screenshot src={orchestrator} alt="Orchestrator-worker flow: a brand name goes to the root agent, which sends a task to brand-researcher, social-listening and competitor-analysis, whose findings converge on write-artifact, which outputs the deck" />
+
+
+All three researchers run with reasoning set to none, because they execute a tightly specified search protocol and return a fixed contract, so thinking tokens there pump up latency and tokens without actually making a real impact. The compilation is done by the same root orchestrator agent after reading the result of its subagents.
+
+The one thing injected into the root on every turn is the date. A model has no clock, so left alone it reaches for plausible-sounding dates and lands in the wrong year, which is fatal for this particular job: the whole point of the research being live is that the pitch knows what season it is going into. So each turn starts with today's date and a planning window 45 days out, and an instruction never to state a date it has not verified against a source. That is what makes a pitch able to notice that Diwali is three weeks away, or that the brand's category spikes with the race calendar, rather than writing something timing-blind.
+
+**brand-researcher** works the corporate record through [context.dev](https://context.dev), whose web search and scrape are the only two tools it gets, capped at eight calls and twelve findings, each shaped `{signal, claim, excerpt, sourceUrl, confidence}`. What it contributes is stage and age, which decide what kind of pitch is even appropriate, since a ten-year-old heritage label in a turnaround and a two-year-old brand riding a trend want opposite work. It also captures the brand's own language verbatim, which is what everything else gets measured against. It is forbidden to evaluate the brand or suggest ideas.
+
+**social-listening** works Reddit and X. It contributes the tension: a theme said more than once by people who do not know each other, the places where what people say collides with what the brand claims, and the words people use that the brand would never print. That last one is what a campaign ends up named after. The brand's own name is usually the weakest query, because people complain about the category, the habit and the price long before they name a company.
+
+**competitor-analysis** contributes what is already taken, across exactly three rivals, found the way customers find them by searching for the comparisons people actually write rather than pulling a category listicle. It resolves each one through context.dev's brand lookup before spending anything on scraping, since one cheap call already returns positioning, category and socials. An idea only earns its place if it could not be handed to a competitor unchanged, and this is what makes that testable.
+
+**profile-instagram** is a tool rather than an agent, with no model involved at all. The first version of it was going to actually look at the posts, running the grid through Gemini's image and video intelligence to read what a brand's content is like. I dropped that on purpose. It is expensive, and video analysis is slow enough that it would have held up the entire pipeline behind it. So it became heuristic instead: post frequency against the window the feed actually spans, format mix, median and top reach, the outlier ratio, and the captions on the four best posts with their URLs. A brand posting five times a week at a flat 1.2x is grinding with nothing breaking out; one posting once a week at 14x has found a format and is not repeating it. That is a deck-opening tension out of arithmetic, for a fraction of the cost and none of the wait.
+
+The agent runs on [eve](https://eve.dev), which I picked for the runtime and the abstraction, and the UI is a Next.js app with tRPC and Drizzle over Postgres and Supabase for auth. The app invokes the agent, and the research trail fills in live as the children report back. The finished deck renders through react-pdf as landscape slides, set in the brand's own colours, which come from the same context.dev brand lookup: the palette, the logo, and a judgement call on which hex is actually the accent, since a brand's palette usually leads with a black or an off-white and neither of those makes an accent.
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-2 my-12 place-items-center">
+  <Screenshot src={researchTrail} alt="The research trail in the chat: looked up the brand, searched the web 33 times, read 3 pages, broken down into brand lookups, web searches, pages read and other steps, with the sources it collected" />
+  <Screenshot src={artifact} alt="The finished pitch open in the document panel beside the conversation, tension and reframe written out with every claim an inline link to its source" />
+</div>
+
+### What Came Out Of It
+
+You drop in a brand name and you get back a pitch deck that looks like that brand, with research behind it that comes from real, checkable sources rather than from whatever the model remembers. That was the whole bet and it held up.
+
+The clearest test of it was a client brief I wrote for [PlusOneThree](https://plusonethree.com), an endurance and strength fuelling brand. The brief was intentionally descriptive, closer to what an agency would actually receive than to a prompt:
+
+```
+CLIENT BRIEF — PlusOneThree
+
+Who we are
+PlusOneThree is an endurance and strength fuelling brand. Two founders: Anmol Raina (@anmolraina13, 455k) is the face, an amateur HYROX and Ironman athlete whose content is entirely fitness and endurance sport. Ishan Shrivastava (@ishan.sriv, 688) runs the business. Anmol isn't endorsing this; he's the athlete the product was built for.
+
+What we're launching
+Two SKUs: Stim and Non-Stim.
+Both carry 45g dual-source carbs and 1,000mg electrolytes, 600mg of it sodium. Stim adds a caffeine system.
+Built for sustained endurance efforts. Pricing not yet fixed.
+
+Why we exist
+Endurance is an expensive sport in India, and no supplement here does endurance and strength together. The shelf is whey and mass gainers, built for the gym, not for hour four. Indian athletes training for HYROX, Ironman, marathons and hybrid events are importing their fuel or improvising it. We're the first product built for them, here.
+
+When
+Launching October 2026, this month.
+
+Where we've got to
+- 8,500+ waitlist signups, pre-product
+- Infotainment carousels and athlete testimonials from athletes we seeded samples with
+- WhatsApp to early signups carrying a 13% launch-day code and the product reveal
+
+Who we're for
+Indian endurance and hybrid athletes: HYROX, Ironman, marathon, people who train for events rather than for the mirror. They already know what carbs-per-hour and sodium-per-litre mean, or they're about to learn. Almost all of them found us through Anmol.
+
+What we need from WLDD
+A launch campaign for the fortnight either side of launch day: the idea, the content formats, and distribution beyond Anmol's own following. We can make content fast and we have athlete relationships. What we can't do is reach the endurance athletes who don't already follow him.
+```
+
+That one prompt, with nothing else, produced this.
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-2 my-12 place-items-center">
+  <Screenshot src={deckCover} alt="Generated deck cover: Fuel Without Borders, set in PlusOneThree's orange and black" />
+  <Screenshot src={deckTension} alt="The tension slide, opening on Indian endurance athletes improvising their fuel, with every claim linked to its source" />
+  <Screenshot src={deckFormats} alt="The content formats slide: teardown cards, comment-section banter, script vs scene, founder piece-to-cam, an IRL long-run stunt, post-run vox pop, template virality and story reposts" />
+  <Screenshot src={deckProof} alt="The proof slide, backing the formulation against documented race-day failures with links to the threads they came from" />
+</div>
+
+Nine slides, and it hits the house grammar on every one: the tension (why does an Indian marathoner running 42km in 32°C have to fuel like a hospital patient), the reframe, a named idea with a device in The Field Audit, four phases, seven content formats, distribution mapped to handle archetypes, proof, and a commitment slide naming only services that exist in the catalogue. It is set in the brand's own colours, pulled during research. And the claims on the tension and proof slides are live links to the Reddit threads and race reports they came from, because the writer could not have cited anything else.
+
+<p class="my-12 text-center">
+  <a href="/artifacts/pitchcraft/fuel-without-borders-plusonethree.pdf" target="_blank" rel="noopener">Read the full deck</a>
+</p>
+
+The brief being that detailed turned out not to be the thing carrying it, which is the part I did not expect. The judging set was three brand names with no brief at all, so I gave it exactly that, one line each, one shot, no follow-up.
+
+<figure class="my-12 flex flex-col items-center gap-3">
+
+| Prompt | What came back | Time |
+| --- | --- | --- |
+| "build me a pitch for jio" | [Network of the Nation](/artifacts/pitchcraft/network-of-the-nation-jio.pdf)  | 2m 06s |
+| "build me a pitch for chatgpt" | [Beyond the Prompt](/artifacts/pitchcraft/beyond-the-prompt-chatgpt.pdf) | 2m 40s |
+| "build me a pitch for coca cola" | [Taste the Table](/artifacts/pitchcraft/taste-the-table-coca-cola.pdf) | 2m 52s |
+
+<figcaption>every deck linked as it came out, unedited</figcaption>
+</figure>
