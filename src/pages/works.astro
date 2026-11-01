@@ -1,10 +1,9 @@
 ---
-import Container from "~/components/common/container.astro";
-import WorksList from "~/components/works/works-list";
+import WorkCard from "~/components/works/work-card.astro";
 import Layout from "~/layouts/Layout.astro";
 import { getSortedWorks } from "~/lib/works";
 
-const works = (await getSortedWorks()).map(({ id, data }) => ({ id, ...data }));
+const works = await getSortedWorks();
 ---
 
 <Layout
@@ -14,20 +13,23 @@ const works = (await getSortedWorks()).map(({ id, data }) => ({ id, ...data }));
       "products and experiments i am/was affiliated with, with case studies of selected works",
   }}
 >
-  <main>
-    <Container>
-      <div class="space-y-4">
-        <div class="space-y-4 lg:max-w-[45%]">
-          <h1 class="font-heading text-3xl font-medium md:text-5xl">works</h1>
-          <p class="text-muted-foreground text-lg text-justify">
-            products and experiments i am/was affiliated with. pick one for the
-            full case study — what it was, what i built, and how it works.
-          </p>
-        </div>
-        <div class="py-6">
-          <WorksList works={works} client:load />
-        </div>
+  <main class="space-y-6 py-8 pb-12 lg:py-12">
+    <div class="mx-auto max-w-xl space-y-4 px-4 lg:px-0">
+      <h1 class="font-heading text-3xl font-medium md:text-5xl">works</h1>
+      <p class="text-muted-foreground text-lg">
+        products and experiments i am/was affiliated with. pick one for the full
+        case study — what it was, what i built, and how it works.
+      </p>
+    </div>
+
+    <div class="px-4 lg:px-24">
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-x-2 lg:grid-cols-3">
+        {
+          works.map((work, i) => (
+            <WorkCard work={work} compact loading={i < 6 ? "eager" : "lazy"} />
+          ))
+        }
       </div>
-    </Container>
+    </div>
   </main>
 </Layout>
