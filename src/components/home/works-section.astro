@@ -65,7 +65,7 @@ const works: Work[] = [
         href={"/works"}
         class="inline-flex items-center gap-x-1 text-sm font-medium hover:text-foreground transition-colors"
       >
-        view more
+        view all
         <ArrowUpRight className="size-3" />
       </a>
     </div>
@@ -77,7 +77,7 @@ const works: Work[] = [
     >
       {
         works.map((work) => (
-          <a href={`/work/${work.slug}`} class="space-y-4 group">
+          <a href={`/work/${work.slug}`} class="space-y-2 group">
             <div class="aspect-video rounded group">
               <Image
                 src={work.thumbnail}
@@ -88,7 +88,7 @@ const works: Work[] = [
                 loading={"eager"}
               />
             </div>
-            <div class="space-y-0.5">
+            <div class="space-y-">
               <h3 class="font-heading text-lg font-medium text-foreground">
                 {work.title}
               </h3>

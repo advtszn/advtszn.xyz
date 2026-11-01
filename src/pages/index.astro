@@ -5,6 +5,7 @@ import Link from "~/components/common/link.astro";
 import HeroSection from "~/components/home/hero-section.astro";
 import WorksSection from "~/components/home/works-section.astro";
 import WritingsSection from "~/components/home/writings-section.astro";
+import SocialsSection from "~/components/home/socials-section.astro";
 
 const birthDate = new Date("2007-08-28");
 const today = new Date();
@@ -23,9 +24,10 @@ const age =
     description: `${age} year old multi-disciplinary engineer, obsessed with scale, speed and aesthetics`,
   }}
 >
-  <div class="space-y-12 lg:space-y-20 py-10 pb-20 lg:py-16">
+  <div class="space-y-12 lg:space-y-20 py-10 pb-20 lg:py-12">
     <HeroSection />
     <WorksSection />
     <WritingsSection />
+    <SocialsSection />
   </div>
 </Layout>

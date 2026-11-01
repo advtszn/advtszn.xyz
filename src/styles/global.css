@@ -1,35 +1,20 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Self-hosted Satoshi (headings) */
+/* Self-hosted Overused Grotesk (variable) */
 @font-face {
-  font-family: "Satoshi Variable";
-  src: url("/fonts/satoshi/Satoshi-Variable.woff2") format("woff2");
+  font-family: "Overused Grotesk";
+  src: url("/fonts/overused-grotesk/OverusedGroteskRoman-VF.woff2") format("woff2");
   font-weight: 300 900;
   font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Satoshi Variable";
-  src: url("/fonts/satoshi/Satoshi-VariableItalic.woff2") format("woff2");
-  font-weight: 300 900;
-  font-style: italic;
-  font-display: swap;
-}
-
-/* Ensure fonts don't block rendering */
-@font-face {
-  font-family: "Instrument Sans Variable";
   font-display: swap;
 }
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "Instrument Sans Variable", sans-serif;
-  --font-heading: "Satoshi Variable", sans-serif;
-  --font-satoshi: "Satoshi Variable", sans-serif;
+  --font-sans: "Overused Grotesk", sans-serif;
+  --font-heading: "Overused Grotesk", sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
