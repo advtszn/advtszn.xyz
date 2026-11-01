@@ -27,7 +27,7 @@ export default function WorksList({ works }: { works: TWork[] }) {
           <WorkItem
             key={work.id}
             title={work.title}
-            href={`/works/${work.id}`}
+            href={`/work/${work.id}`}
             date={work.date}
             isActive={selection.isItemActive(work)}
             onSelect={(e) => handleSelect(e, work)}

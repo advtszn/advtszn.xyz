@@ -65,11 +65,11 @@ const formatDate = (date: Date): string => {
                 <h2 class="font-heading text-foreground font-medium">
                   timeline
                 </h2>
-                <p class="text-muted-foreground">{work.data.timeline}</p>
+                <p class="text-muted-foreground font-prose">{work.data.timeline}</p>
               </div>
               <div class="space-y-1">
                 <h2 class="font-heading text-foreground font-medium">live</h2>
-                <p class="text-muted-foreground">
+                <p class="text-muted-foreground font-prose">
                   {
                     work.data.url ? (
                       <a
@@ -89,7 +89,7 @@ const formatDate = (date: Date): string => {
               </div>
               <div class="space-y-1">
                 <h2 class="font-heading text-foreground font-medium">tech</h2>
-                <p class="text-muted-foreground">{work.data.tech.join(", ")}</p>
+                <p class="text-muted-foreground font-prose">{work.data.tech.join(", ")}</p>
               </div>
             </div>
           </div>
@@ -100,7 +100,7 @@ const formatDate = (date: Date): string => {
                 <h2 class="font-heading text-foreground font-medium">
                   overview
                 </h2>
-                <p class="text-muted-foreground text-justify">
+                <p class="text-muted-foreground text-justify font-prose">
                   {work.data.overview}
                 </p>
               </div>
@@ -108,7 +108,7 @@ const formatDate = (date: Date): string => {
                 <h2 class="font-heading text-foreground font-medium">
                   what i built
                 </h2>
-                <p class="text-muted-foreground text-justify">
+                <p class="text-muted-foreground text-justify font-prose">
                   {work.data.contribution}
                 </p>
               </div>

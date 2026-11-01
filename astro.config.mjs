@@ -9,6 +9,9 @@ import { defineConfig } from "astro/config";
 export default defineConfig({
   site: "https://advtszn.xyz",
   output: "static",
+  markdown: {
+    shikiConfig: { theme: "vesper", wrap: false },
+  },
   prefetch: {
     prefetchAll: false,
     defaultStrategy: "hover",

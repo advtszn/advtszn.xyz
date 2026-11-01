@@ -33,22 +33,29 @@ const { Content } = await render(writing);
   <main>
     <Container>
       <div class="space-y-6">
-        <a
-          href="/writings"
-          class="text-muted-foreground flex items-center pt-2 text-sm"
-          ><ArrowLeft size={16} class="mr-1.5" /> Back to writings</a
-        >
-        <div
-          class="mb-12 flex flex-col gap-y-4 lg:flex-row lg:justify-between lg:items-center lg:gap-y-0"
-        >
-          <h1 class="font-heading text-3xl font-medium">
-            {writing.data.title}
-          </h1>
-          <p
-            class="text-muted-foreground text-sm font-medium whitespace-nowrap"
+        {/* Header sits in the same column the prose does, so the title and
+            the first paragraph share a left edge. */}
+        <div class="mx-auto max-w-xl space-y-6">
+          <a
+            href="/writings"
+            class="text-muted-foreground hover:text-foreground group flex w-fit items-center pt-2 text-sm transition-colors"
+            ><ArrowLeft
+              size={16}
+              class="mr-1.5 transition-transform group-hover:-translate-x-0.5"
+            /> back to writings</a
           >
-            {formatDate(writing.data.date)}
-          </p>
+          <div
+            class="mb-12 flex flex-col gap-y-4 lg:flex-row lg:justify-between lg:items-baseline lg:gap-y-0"
+          >
+            <h1 class="font-heading text-3xl font-medium">
+              {writing.data.title}
+            </h1>
+            <p
+              class="text-muted-foreground text-sm font-medium whitespace-nowrap tabular-nums"
+            >
+              {formatDate(writing.data.date)}
+            </p>
+          </div>
         </div>
         <article class="mdx mb-20 space-y-6">
           <Content />

@@ -10,11 +10,42 @@
   font-display: swap;
 }
 
+/* Self-hosted Public Sans (variable) — long-form reading only. Ships a real
+   italic, which Overused Grotesk doesn't. Swap both srcs to A/B another face. */
+@font-face {
+  font-family: "Public Sans";
+  src: url("/fonts/public-sans/PublicSans-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Public Sans";
+  src: url("/fonts/public-sans/PublicSans-VariableItalic.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Self-hosted Geist Mono (variable) — code, and anything that wants columns */
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/geist-mono/GeistMono-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* Three fonts, three jobs: Overused Grotesk is the site's voice (UI +
+     every heading), Public Sans carries running prose, Geist Mono is code. */
   --font-sans: "Overused Grotesk", sans-serif;
   --font-heading: "Overused Grotesk", sans-serif;
+  --font-prose: "Public Sans", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -150,6 +181,40 @@
   cursor: zoom-in;
 }
 
+/* Reading column: prose is held to a measure and centres itself; media breaks
+   out to the full container. Currently max-w-4xl, ~96 characters at 18px. */
+.mdx {
+  font-family: var(--font-prose);
+}
+
+.mdx > * {
+  @apply mx-auto max-w-4xl;
+}
+
+/* Media breaks out to the whole container. Code stays inside the reading
+   column — it's read line by line like prose, not scanned like an image.
+   Bare <img>/<video> are listed because markdown emits them as direct
+   children, unlike the <figure>-wrapped ones in the case studies. */
+.mdx > figure,
+.mdx > div,
+.mdx > table,
+.mdx > video,
+.mdx > img {
+  @apply max-w-none;
+}
+
+/* The rule above replaces preflight's `img { max-width: 100% }` with a fixed
+   896px, which is inert below 896px — so on a phone images rendered at their
+   intrinsic width and pushed the document to 912px on a 390px viewport. Put
+   the ceiling back; higher specificity than `.mdx > *`, so it always wins. */
+.mdx img,
+.mdx video,
+.mdx svg,
+.mdx canvas {
+  max-width: 100%;
+  height: auto;
+}
+
 .mdx h1 {
   @apply text-foreground/90 mt-10 font-heading text-2xl font-medium md:text-3xl;
 }
@@ -178,25 +243,47 @@
   @apply text-foreground/50;
 }
 
-.mdx blockquote {
-  @apply text-muted-foreground border-l-2 pl-4 italic;
+/* Quotes stay ragged — a pulled-out passage is short, and justifying a few
+   lines against a rule just opens gaps. Overrides the justify on .mdx p. */
+.mdx blockquote,
+.mdx blockquote p {
+  @apply text-muted-foreground border-l-2 pl-4 text-left italic;
 }
 
+.mdx blockquote p {
+  @apply border-0 pl-0;
+}
+
+/* Mirrors ~/components/common/link.astro so prose links read the same as the
+   ones hand-placed in .astro pages. */
 .mdx a {
-  @apply underline underline-offset-4 transition-colors text-muted-foreground font-medium;
-}
-
-.mdx a:hover {
-  @apply text-foreground;
+  @apply text-foreground decoration-muted-foreground hover:decoration-foreground font-medium underline underline-offset-3 transition-colors;
 }
 
 /* Images */
 .mdx img {
-  @apply mx-auto rounded-md;
+  @apply mx-auto rounded;
 }
 
+/* Justified. At this measure it holds ~1.12x word-space stretch, close to
+   ragged's 1.12-1.34x. No hyphenation: it never fires at this width, and when
+   it does fire it breaks identifiers like `createdAt` into `create-dAt`. */
 .mdx p {
   @apply text-muted-foreground text-justify md:text-lg;
+  -webkit-hyphens: none;
+  hyphens: none;
+  text-wrap: pretty;
+}
+
+/* Ragged below sm, justified above. Justification needs enough words per line
+   to spread the slack; measured word-space stretch on one paragraph:
+     360px -> 3.6x   390px -> 3.0x   430px -> 3.5x   540px -> 3.0x
+     640px -> 2.0x   768px -> 2.0x   1024px -> 2.4x  1280px -> 2.0x
+   It settles at 640px, so that's the line. */
+@media (width < 40rem) {
+  .mdx p {
+    @apply text-left;
+  }
 }
 
 /* Tables */
@@ -204,8 +291,12 @@
   @apply my-10 flex flex-col items-center gap-3;
 }
 
-.mdx figcaption {
-  @apply text-muted-foreground/75 max-w-xl text-center text-[13px] leading-normal md:text-sm;
+/* Captions: italic, centred, never justified — they're one or two lines, so
+   justifying them only strands words. text-align is set explicitly because
+   `text-justify` on .mdx p would otherwise reach a <p>-wrapped caption. */
+.mdx figcaption,
+.mdx figcaption p {
+  @apply text-muted-foreground/75 mx-auto max-w-xl text-center text-[13px] leading-normal italic md:text-sm;
   text-wrap: pretty;
 }
 
@@ -251,11 +342,28 @@
 
 /* Code */
 .mdx pre {
-  @apply my-6 overflow-x-auto rounded-lg p-4 text-sm leading-relaxed md:text-base;
+  @apply border-border my-8 overflow-x-auto rounded border p-4 text-[13px] leading-[1.7] md:text-sm;
+  font-variant-ligatures: none;
+  tab-size: 2;
 }
 
+.mdx pre code {
+  @apply font-mono;
+  /* Shiki emits one span per line; let them be lines. */
+  display: grid;
+}
+
+/* Inline code: a quiet tint, no border — several per paragraph is normal, and
+   outlined chips speckle the text block. 0.875em keeps the mono x-height
+   level with the prose around it. */
 .mdx :not(pre) > code {
-  @apply bg-muted text-foreground/90 rounded px-1.5 py-0.5 text-[0.9em];
+  @apply bg-muted/40 text-foreground rounded px-1 py-px font-mono text-[0.875em];
+  font-variant-ligatures: none;
+}
+
+/* Links already carry an underline; a code chip inside one shouldn't fight it. */
+.mdx a > code {
+  @apply text-foreground;
 }
 
 @layer base {

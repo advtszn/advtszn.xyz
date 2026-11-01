@@ -16,7 +16,7 @@ first week of october, i was looking for a parcel forwarding service to send som
 that led me to contacting the support for clarifying a few questions i had, it was the founder's own business phone number -- we got on a call and got it sorted.
 the website clearly looked vibecoded and confirmed by the founder himself he had built it with not much of a technical knowledge. after placing my orders i looked into the network tab and it led to a chain of vulnerabilities one by one.
 
-# sequential database IDs
+## sequential database IDs
 
 <Image
   src={networkTab}
@@ -38,7 +38,7 @@ it doesn't end here, the first time i tried the request i used my own authz bear
 
 > a bearer scheme that never actually validates the token is Identification and Authentication Failures (A07 in the OWASP Top 10).
 
-# vulnerable host machine
+## vulnerable host machine
 
 the server echoed the exact CyberPanel version it was running on
 
@@ -64,7 +64,7 @@ i tried my luck on that particular vulnerability bcs it was tempting but wasn't 
 <figcaption>the four CyberPanel CVEs the running version was exposed to, none of which i exploited past the first</figcaption>
 </figure>
 
-# cors set to allow everyone
+## cors set to allow everyone
 
 reading those same response headers, one more line stood out:
 
@@ -76,7 +76,7 @@ a wildcard `Access-Control-Allow-Origin` means any website on the internet can m
 
 > overly permissive CORS is another Security Misconfiguration (A05 in the OWASP Top 10).
 
-# still compromised
+## still compromised
 
 appending `/.env` to the domain is one of the oldest checks there is. it works far more often than it should, and it worked here.
 
@@ -104,7 +104,7 @@ the API endpoints used by the admin dashboard were also public and non-paginated
   data-lightbox
 />
 
-# nothing crazy, but extremely serious
+## nothing crazy, but extremely serious
 
 back in my first year of college i used to practice ctfs a lot, but i never really got good at it and honestly i'm still not -- the one genuinely hard thing here was the cyberpanel root shell exploit which i couldn't pull off. but ctfs permanently rewired how i look at software.
 
