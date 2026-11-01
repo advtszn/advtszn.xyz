@@ -104,13 +104,7 @@
 
 .marquee-container {
   overflow: hidden;
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    black 10%,
-    black 90%,
-    transparent 100%
-  );
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent 100%);
   -webkit-mask-image: linear-gradient(
     to right,
     transparent,
@@ -150,13 +144,7 @@
 @media (max-width: 767px) {
   .marquee-container {
     max-width: 10rem;
-    mask-image: linear-gradient(
-      to right,
-      transparent,
-      black 20%,
-      black 80%,
-      transparent 100%
-    );
+    mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent 100%);
     -webkit-mask-image: linear-gradient(
       to right,
       transparent,
@@ -291,6 +279,6 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-muted-foreground;
   }
 }

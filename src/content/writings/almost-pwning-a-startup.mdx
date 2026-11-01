@@ -24,7 +24,7 @@ the website clearly looked vibecoded and confirmed by the founder himself he had
   data-lightbox
 />
 
-the network tab showed multiple requests with an integer, the url was `https://host.xyz/api/user/profile/<integer>`, hit the same url with a different integer and boom. you can list every user's information like that. the breaking point was that it exposed PII like their home address, phone number etc. the same pattern existed in endpoints that served other sensitive data like documents, transactions, shipments etc.
+the network tab showed multiple requests with an integer, the endpoint was `/user/profile/:id`, hit the same url with a different integer and boom. you can list every user's information like that. the breaking point was that it exposed PII like their home address, phone number etc. the same pattern existed in endpoints that served other sensitive data like documents, transactions, shipments etc.
 
 <Image
   src={idor}

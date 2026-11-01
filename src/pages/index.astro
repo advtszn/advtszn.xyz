@@ -1,66 +1,10 @@
 ---
 import Container from "~/components/common/container.astro";
 import Layout from "../layouts/Layout.astro";
-import city from "~/assets/home/city.webp";
-import ramen from "~/assets/home/ramen.webp";
-import perspective from "~/assets/home/perspective.webp";
-import back2back from "~/assets/home/back2back.webp";
-// Responsive variants
-import city400 from "~/assets/home/responsive/city-400.webp";
-import city800 from "~/assets/home/responsive/city-800.webp";
-import ramen400 from "~/assets/home/responsive/ramen-400.webp";
-import ramen800 from "~/assets/home/responsive/ramen-800.webp";
-import perspective400 from "~/assets/home/responsive/perspective-400.webp";
-import perspective800 from "~/assets/home/responsive/perspective-800.webp";
-import back2back400 from "~/assets/home/responsive/back2back-400.webp";
-import back2back800 from "~/assets/home/responsive/back2back-800.webp";
-import { getImage } from "astro:assets";
-import { cn } from "~/lib/utils";
-import BlurImage from "~/components/common/blur-image.astro";
-import { generateLQIPFromPath } from "~/lib/lqip";
-import path from "path";
 import Link from "~/components/common/link.astro";
-
-const assetsDir = path.join(process.cwd(), "src/assets/home");
-
-const images = await Promise.all([
-  {
-    src: back2back,
-    src400: back2back400,
-    src800: back2back800,
-    alt: "laptop running a code editor on a white desk beside a printed system architecture diagram",
-    lqip: await generateLQIPFromPath(path.join(assetsDir, "back2back.webp"), {
-      grayscale: true,
-    }),
-  },
-  {
-    src: perspective,
-    src400: perspective400,
-    src800: perspective800,
-    alt: "an upside-down sign reading 'perspective!' hung on a cafe pillar",
-    lqip: await generateLQIPFromPath(path.join(assetsDir, "perspective.webp"), {
-      grayscale: true,
-    }),
-  },
-  {
-    src: ramen,
-    src400: ramen400,
-    src800: ramen800,
-    alt: "holding a cup of instant noodles with a wooden fork, sitting on a bench",
-    lqip: await generateLQIPFromPath(path.join(assetsDir, "ramen.webp"), {
-      grayscale: true,
-    }),
-  },
-  {
-    src: city,
-    src400: city400,
-    src800: city800,
-    alt: "dusk sky over a city road, streetlights coming on",
-    lqip: await generateLQIPFromPath(path.join(assetsDir, "city.webp"), {
-      grayscale: true,
-    }),
-  },
-]);
+import HeroSection from "~/components/home/hero-section.astro";
+import WorksSection from "~/components/home/works-section.astro";
+import WritingsSection from "~/components/home/writings-section.astro";
 
 const birthDate = new Date("2007-08-28");
 const today = new Date();
@@ -79,98 +23,9 @@ const age =
     description: `${age} year old multi-disciplinary engineer, obsessed with scale, speed and aesthetics`,
   }}
 >
-  <main class="">
-    <Container>
-      <div class="flex flex-col space-y-6 lg:flex-row lg:items-start lg:justify-between lg:space-y-0">
-        <div class="space-y-8 lg:max-w-[50%] lg:pl-4">
-          <div class="space-y-4 font-light">
-            <h1 class="font-heading text-3xl font-medium md:text-5xl">
-              advait <span class="text-xl md:text-2xl">(advtszn)</span>
-            </h1>
-            <p class="font-heading text-xl md:text-2xl font-medium leading-[120%] hyphens-auto">
-              {age} y/o multi-disciplinary engineer, obsessed with scale, speed
-              and aesthetics
-            </p>
-          </div>
-          <div class="text-muted-foreground space-y-4 text-lg text-justify">
-            <p>
-              software engineer at <Link href="https://wldd.in" target="_blank"
-                >wldd.in</Link
-              >; prev. <Link
-                href="https://works.advtszn.xyz/kimchipremium"
-                target="_blank">kimchipremium.io</Link
-              >. my day-to-day revolves around backend, but im really obsessive
-              about good typography and ux
-            </p>
-            <p>a few things i&apos;ve shipped:</p>
-            <ul class="marker:text-muted-foreground/40 list-disc space-y-2 pl-5 text-left">
-              <li>
-                owned backend on <Link
-                  href="https://works.advtszn.xyz/listable-labs"
-                  target="_blank">listable labs</Link
-                >; prompt eval pipeline, background job processing, multi-tenant
-                blogs on custom domains
-              </li>
-
-              <li>
-                <Link
-                  href="https://works.advtszn.xyz/kimchipremium"
-                  target="_blank">kimchipremium</Link
-                >, built an aggregator that scrapes and publishes ~100 crypto
-                headlines a day (278 at peak)
-              </li>
-
-              <li>
-                built <Link href="https://works.advtszn.xyz/orbe" target="_blank"
-                  >orbe</Link
-                > solo; an outreach os that enriches a lead from email and writes
-                a personalized pitch
-              </li>
-            </ul>
-            <p>
-              outside tech, i&apos;ve dabbled in a few other things too, i used
-              to post anime edits, designed <Link href="/archive"
-                >cover arts</Link
-              > and even tried music
-              production for a bit.
-            </p>
-          </div>
-        </div>
-
-        <div
-          id="masonry"
-          class={cn(
-            "gap-x-2 leading-0 ",
-            "[-moz-column-count:2] [-moz-column-gap:8px] [-webkit-column-count:2] [-webkit-column-gap:8px] [column-count:2]",
-            "md:[-moz-column-count:3]  md:[-webkit-column-count:3] md:[column-count:3]",
-            "lg:[-moz-column-count:2]  lg:[-webkit-column-count:2] lg:[column-count:2]",
-          )}
-        >
-          {images.map(async ({ src, src400, src800, alt, lqip }) => {
-            const webpImage = await getImage({ src, format: "webp" });
-            const webp400 = await getImage({ src: src400, format: "webp" });
-            const webp800 = await getImage({ src: src800, format: "webp" });
-            const srcset = `${webp400.src} 400w, ${webp800.src} 800w, ${webpImage.src} 1200w`;
-
-            return (
-              <BlurImage
-                src={webpImage.src}
-                srcset={srcset}
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                lqip={lqip}
-                alt={alt}
-                width={src.width}
-                height={src.height}
-                class="mb-2 h-auto md:w-3xs cursor-zoom-in rounded grayscale"
-                grayscalePlaceholder={true}
-                data-full={webpImage.src}
-                loading="eager"
-                fetchpriority="high"
-              />
-            );
-          })}
-        </div>
-      </div>
-    </Container>
-  </main>
+  <div class="space-y-12 lg:space-y-20 py-10 pb-20 lg:py-16">
+    <HeroSection />
+    <WorksSection />
+    <WritingsSection />
+  </div>
 </Layout>
