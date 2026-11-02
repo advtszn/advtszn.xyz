@@ -18,7 +18,9 @@ const initialTime = new Intl.DateTimeFormat("en-GB", {
     <Ascii piece="marine-drive" label="marine drive at night, in ascii" />
     <div class="flex items-center justify-between text-sm font-medium">
       <p>mumbai</p>
-      <p data-clock class="tabular-nums">{initialTime}</p>
+      <p data-clock class="tabular-nums">
+        {initialTime}
+      </p>
     </div>
   </div>
 
@@ -27,46 +29,46 @@ const initialTime = new Intl.DateTimeFormat("en-GB", {
       advait <span class="text-sm text-muted-foreground">(advtszn)</span>
     </h1>
     <p class="text-sm text-muted-foreground font-medium">
-      multi-disciplinary engineer
+      multidisciplinary engineer
     </p>
   </div>
 
-  <div class="space-y-6 leading-[150%] text-justify tracking-wide">
+  <div class="space-y-6 leading-[150%] text-justify  tracking-wide">
     <p>
-      software engineer at <Link href="https://wldd.in" target="_blank"
-        >wldd.in</Link
-      >; prev. <Link href="/work/kimchipremium">kimchipremium.io</Link>. my
-      day-to-day revolves around backend, but im really obsessive about good
+      software engineer at{" "}
+      <Link href="https://wldd.in" target="_blank">
+        wldd.in</Link>; prev. <Link href="/work/kimchipremium">kimchipremium.io</Link>. my
+      day-to-day revolves around backend, but i'm really obsessive about good
       typography and ux
     </p>
 
     <div class="space-y-2">
-      <h2 class="font-medium">btw i love shipping:</h2>
+      <p class="">btw i love shipping:</p>
 
       <ul class="list-disc list-inside space-y-2">
         <li>
-          backend eng. <Link href="/work/listable-labs">listable labs</Link>;
-          built prompt eval pipeline, background job processing, multi-tenant
+          <Link href="/work/listable-labs">listable labs</Link>
+          : built prompt eval pipeline, background job processing, multi-tenant
           blogs on custom domains etc.
         </li>
 
         <li>
-          <Link href="/work/kimchipremium">kimchipremium</Link>, built a news
+          built <Link href="/work/kimchipremium">kimchipremium</Link>: a news
           aggregator that scrapes and publishes ~100 crypto headlines a day (278
           at peak)
         </li>
 
         <li>
-          shipped <Link href="/work/orbe">orbe</Link>; an outreach os that
-          enriches leads and writes a personalized outreach emails
+          shipped <Link href="/work/orbe">orbe</Link>: an outreach os that
+          enriches leads and writes personalized outreach emails
         </li>
       </ul>
     </div>
 
     <p>
       outside tech, i've dabbled in a few other things, i used to post anime
-      edits, designed <Link href="/archive">cover arts</Link> and even tried music
-      production for a bit.
+      edits, designed <Link href="/archive">cover arts</Link> and even tried
+      music production for a bit.
     </p>
   </div>
 </main>

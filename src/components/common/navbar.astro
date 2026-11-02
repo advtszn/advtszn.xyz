@@ -9,8 +9,8 @@ const { pathname } = Astro.url;
 
 const links = [
   { href: "/", icon: Home, label: "Home" },
-  { href: "/writings", icon: Lotus, label: "Writings" },
-  { href: "/works", icon: Y2K, label: "Works" },
+  { href: "/works", icon: Lotus, label: "Works" },
+  { href: "/writings", icon: Y2K, label: "Writings" },
   { href: "/archive", icon: Cog, label: "Archive" },
 ];
 ---
@@ -29,24 +29,22 @@ const links = [
     class="bg-sidebar pointer-events-none fixed top-12 left-2 z-50 w-[45%] -translate-y-2 transform rounded-md opacity-0 shadow-md transition-all duration-300 ease-out"
   >
     <ul class="flex flex-col items-start gap-1.5 rounded-md p-2">
-      {
-        links.map(({ href, icon: Icon, label }) => (
-          <li
-            class={cn(
-              "group text-muted-foreground relative w-full rounded-md p-2",
-              {
-                "bg-muted":
-                  href === "/" ? pathname === "/" : pathname.startsWith(href),
-              }
-            )}
-          >
-            <a href={href} class="flex items-center gap-2">
-              <Icon class="h-5 w-5" />
-              {label}
-            </a>
-          </li>
-        ))
-      }
+      {links.map(({ href, icon: Icon, label }) => (
+        <li
+          class={cn(
+            "group text-muted-foreground relative w-full rounded-md p-2",
+            {
+              "bg-muted":
+                href === "/" ? pathname === "/" : pathname.startsWith(href),
+            },
+          )}
+        >
+          <a href={href} class="flex items-center gap-2">
+            <Icon class="h-5 w-5" />
+            {label}
+          </a>
+        </li>
+      ))}
     </ul>
   </nav>
 </header>
@@ -72,7 +70,7 @@ const links = [
             nav.classList.add(
               "opacity-0",
               "-translate-y-2",
-              "pointer-events-none"
+              "pointer-events-none",
             );
           }
         }

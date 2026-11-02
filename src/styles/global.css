@@ -4,7 +4,8 @@
 /* Self-hosted Overused Grotesk (variable) */
 @font-face {
   font-family: "Overused Grotesk";
-  src: url("/fonts/overused-grotesk/OverusedGroteskRoman-VF.woff2") format("woff2");
+  src: url("/fonts/overused-grotesk/OverusedGroteskRoman-VF.woff2")
+    format("woff2");
   font-weight: 300 900;
   font-style: normal;
   font-display: swap;
@@ -119,7 +120,13 @@
 
 .marquee-container {
   overflow: hidden;
-  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent 100%);
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent 100%
+  );
   -webkit-mask-image: linear-gradient(
     to right,
     transparent,
@@ -159,7 +166,13 @@
 @media (max-width: 767px) {
   .marquee-container {
     max-width: 10rem;
-    mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent 100%);
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 20%,
+      black 80%,
+      transparent 100%
+    );
     -webkit-mask-image: linear-gradient(
       to right,
       transparent,
@@ -265,13 +278,19 @@
 }
 
 /* Justified. At this measure it holds ~1.12x word-space stretch, close to
-   ragged's 1.12-1.34x. No hyphenation: it never fires at this width, and when
-   it does fire it breaks identifiers like `createdAt` into `create-dAt`. */
+   ragged's 1.12-1.34x. Hyphenation comes from the shared justified-text rule
+   below; code is opted out there so identifiers like `createdAt` never break
+   into `create-dAt`. */
 .mdx p {
-  @apply text-muted-foreground text-justify md:text-lg;
-  -webkit-hyphens: none;
-  hyphens: none;
+  @apply text-muted-foreground text-justify hyphens-auto [-webkit-hyphens:_auto] [hyphenate-limit-chars:_8_4_4] md:text-lg;
   text-wrap: pretty;
+}
+
+/* Never hyphenate code, URLs-in-code or keyboard keys inside justified text. */
+.text-justify :is(code, kbd, samp, pre),
+.mdx p :is(code, kbd, samp, pre) {
+  -webkit-hyphens: manual;
+  hyphens: manual;
 }
 
 /* Ragged below sm, justified above. Justification needs enough words per line
@@ -282,6 +301,8 @@
 @media (width < 40rem) {
   .mdx p {
     @apply text-left;
+    -webkit-hyphens: manual;
+    hyphens: manual;
   }
 }
 

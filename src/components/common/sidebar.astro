@@ -9,35 +9,34 @@ const { pathname } = Astro.url;
 
 const links = [
   { href: "/", icon: Home, label: "Home" },
-  { href: "/writings", icon: Lotus, label: "Writings" },
-  { href: "/works", icon: Y2K, label: "Works" },
+  { href: "/works", icon: Lotus, label: "Works" },
+  { href: "/writings", icon: Y2K, label: "Writings" },
   { href: "/archive", icon: Cog, label: "Archive" },
 ];
 ---
 
-<aside
-  class="bg-sidebar fixed top-1/2 left-10 z-50 hidden -translate-1/2 rounded-md p-2 lg:block"
->
+<aside class="bg-sidebar fixed top-1/2 left-10 z-50 hidden -translate-1/2 rounded-md p-2 lg:block">
   <nav class="">
     <ul class="flex flex-col items-center gap-1.5">
-      {
-        links.map(({ href, icon: Icon, label }) => (
-          <li
-            class={cn("group text-muted-foreground relative rounded-md p-2", {
-              "bg-muted":
-                href === "/" ? pathname === "/" : pathname.startsWith(href),
-            })}
-          >
-            <a href={href}>
-              <Icon class="h-6 w-6" />
-            </a>
+      {links.map(({ href, icon: Icon, label }) => (
+        <li
+          class={cn("group text-muted-foreground relative rounded-md p-2", {
+            "bg-muted":
+              href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(href) ||
+                  (href === "/works" && pathname.startsWith("/work")),
+          })}
+        >
+          <a href={href}>
+            <Icon class="h-6 w-6" />
+          </a>
 
-            <span class="bg-muted text-muted-foreground pointer-events-none absolute top-1/2 left-full ml-4 w-max -translate-y-1/2 rounded-md px-3 py-1.5 text-sm font-medium opacity-0 transition-all duration-300 ease-out group-hover:pointer-events-auto group-hover:opacity-100">
-              {label}
-            </span>
-          </li>
-        ))
-      }
+          <span class="bg-muted text-muted-foreground pointer-events-none absolute top-1/2 left-full ml-4 w-max -translate-y-1/2 rounded-md px-3 py-1.5 text-sm font-medium opacity-0 transition-all duration-300 ease-out group-hover:pointer-events-auto group-hover:opacity-100">
+            {label}
+          </span>
+        </li>
+      ))}
     </ul>
   </nav>
 </aside>
