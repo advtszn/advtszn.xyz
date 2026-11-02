@@ -48,7 +48,7 @@ const formatDate = (date: Date): string => {
           /> back to works
         </a>
         <div class="flex items-center justify-between mb-12">
-          <h1 class="font-heading text-3xl font-medium text-foreground">
+          <h1 class="text-3xl font-medium text-foreground">
             {work.data.title}
           </h1>
           <p class="font-medium text-sm text-muted-foreground tabular-nums">
@@ -62,13 +62,13 @@ const formatDate = (date: Date): string => {
           <div class="md:w-1/2">
             <div class="flex gap-6 md:gap-12 flex-col">
               <div class="space-y-1">
-                <h2 class="font-heading text-foreground font-medium">
+                <h2 class="text-foreground font-medium">
                   Timeline
                 </h2>
                 <p class="text-muted-foreground font-prose">{work.data.timeline}</p>
               </div>
               <div class="space-y-1">
-                <h2 class="font-heading text-foreground font-medium">Live</h2>
+                <h2 class="text-foreground font-medium">Live</h2>
                 <p class="text-muted-foreground font-prose">
                   {
                     work.data.url ? (
@@ -88,7 +88,7 @@ const formatDate = (date: Date): string => {
                 </p>
               </div>
               <div class="space-y-1">
-                <h2 class="font-heading text-foreground font-medium">Tech used</h2>
+                <h2 class="text-foreground font-medium">Tech used</h2>
                 <p class="text-muted-foreground font-prose">{work.data.tech.join(", ")}</p>
               </div>
             </div>
@@ -97,7 +97,7 @@ const formatDate = (date: Date): string => {
           <div class="md:w-1/2">
             <div class="flex gap-6 md:gap-12 flex-col">
               <div class="space-y-1">
-                <h2 class="font-heading text-foreground font-medium">
+                <h2 class="text-foreground font-medium">
                   Overview
                 </h2>
                 <p class="text-muted-foreground text-justify font-prose">
@@ -105,7 +105,7 @@ const formatDate = (date: Date): string => {
                 </p>
               </div>
               <div class="space-y-1">
-                <h2 class="font-heading text-foreground font-medium">
+                <h2 class="text-foreground font-medium">
                   What I Built
                 </h2>
                 <p class="text-muted-foreground text-justify font-prose">
@@ -125,7 +125,7 @@ const formatDate = (date: Date): string => {
       {
         others.length > 0 && (
           <div class="mb-20 py-10 border-t space-y-6">
-            <h2 class="font-heading text-foreground text-2xl font-medium">
+            <h2 class="text-foreground text-2xl font-medium">
               more works
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-x-2">

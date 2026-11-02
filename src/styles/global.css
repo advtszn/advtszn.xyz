@@ -43,7 +43,6 @@
   /* Three fonts, three jobs: Overused Grotesk is the site's voice (UI +
      every heading), Public Sans carries running prose, Geist Mono is code. */
   --font-sans: "Overused Grotesk", sans-serif;
-  --font-heading: "Overused Grotesk", sans-serif;
   --font-prose: "Public Sans", sans-serif;
   --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --radius-sm: calc(var(--radius) - 4px);
@@ -216,15 +215,15 @@
 }
 
 .mdx h1 {
-  @apply text-foreground/90 mt-10 font-heading text-2xl font-medium md:text-3xl;
+  @apply text-foreground/90 mt-10 text-2xl font-medium md:text-3xl;
 }
 
 .mdx h2 {
-  @apply text-foreground/90 mt-10 font-heading text-xl font-medium md:text-2xl;
+  @apply text-foreground/90 mt-10 text-xl font-medium md:text-2xl;
 }
 
 .mdx h3 {
-  @apply text-foreground/90 mt-10 font-heading text-lg font-medium md:text-xl;
+  @apply text-foreground/90 mt-10 text-lg font-medium md:text-xl;
 }
 
 .mdx ul {
@@ -317,7 +316,7 @@
 }
 
 .mdx th {
-  @apply text-foreground/60 font-heading pr-7 pb-2.5 text-left text-[0.8em] font-medium tracking-wider uppercase whitespace-nowrap;
+  @apply text-foreground/60 pr-7 pb-2.5 text-left text-[0.8em] font-medium tracking-wider uppercase whitespace-nowrap;
 }
 
 .mdx td {
