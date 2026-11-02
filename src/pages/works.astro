@@ -2,11 +2,40 @@
 import WorkCard from "~/components/works/work-card.astro";
 import Layout from "~/layouts/Layout.astro";
 import { getSortedWorks } from "~/lib/works";
+import {
+  breadcrumbSchema,
+  graph,
+  itemListSchema,
+  serializeJsonLd,
+} from "~/lib/seo";
 
 const works = await getSortedWorks();
+
+const jsonLd = serializeJsonLd(
+  graph([
+    {
+      "@type": "CollectionPage",
+      "@id": `${Astro.url.href}#page`,
+      name: "works",
+      isPartOf: { "@id": `${Astro.site}#website` },
+      mainEntity: itemListSchema(
+        works.map(({ id, data }) => ({ name: data.title, path: `/work/${id}/` })),
+        Astro.site,
+      ),
+    },
+    breadcrumbSchema(
+      [
+        ["home", "/"],
+        ["works", "/works/"],
+      ],
+      Astro.site,
+    ),
+  ]),
+);
 ---
 
 <Layout
+  jsonLd={jsonLd}
   content={{
     title: "works | advtszn",
     description:

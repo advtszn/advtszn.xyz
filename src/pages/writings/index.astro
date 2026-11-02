@@ -2,13 +2,45 @@
 import { getCollection } from "astro:content";
 import Link from "~/components/common/link.astro";
 import Layout from "~/layouts/Layout.astro";
+import {
+  breadcrumbSchema,
+  graph,
+  itemListSchema,
+  serializeJsonLd,
+} from "~/lib/seo";
 
 const writings = (await getCollection("writings")).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
 );
+
+const jsonLd = serializeJsonLd(
+  graph([
+    {
+      "@type": "CollectionPage",
+      "@id": `${Astro.url.href}#page`,
+      name: "writings",
+      isPartOf: { "@id": `${Astro.site}#website` },
+      mainEntity: itemListSchema(
+        writings.map(({ id, data }) => ({
+          name: data.title,
+          path: `/writings/${id}/`,
+        })),
+        Astro.site,
+      ),
+    },
+    breadcrumbSchema(
+      [
+        ["home", "/"],
+        ["writings", "/writings/"],
+      ],
+      Astro.site,
+    ),
+  ]),
+);
 ---
 
 <Layout
+  jsonLd={jsonLd}
   content={{
     title: "writings | advtszn",
     description:

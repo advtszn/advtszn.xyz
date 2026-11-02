@@ -6,6 +6,12 @@ import HeroSection from "~/components/home/hero-section.astro";
 import WorksSection from "~/components/home/works-section.astro";
 import WritingsSection from "~/components/home/writings-section.astro";
 import SocialsSection from "~/components/home/socials-section.astro";
+import {
+  graph,
+  personSchema,
+  serializeJsonLd,
+  websiteSchema,
+} from "~/lib/seo";
 
 const birthDate = new Date("2007-08-28");
 const today = new Date();
@@ -16,9 +22,23 @@ const age =
     today.getDate() >= birthDate.getDate())
     ? today.getFullYear() - birthDate.getFullYear()
     : today.getFullYear() - birthDate.getFullYear() - 1;
+
+const jsonLd = serializeJsonLd(
+  graph([
+    personSchema(Astro.site),
+    websiteSchema(Astro.site),
+    {
+      "@type": "ProfilePage",
+      "@id": `${Astro.url.href}#page`,
+      mainEntity: { "@id": `${Astro.site}#person` },
+      isPartOf: { "@id": `${Astro.site}#website` },
+    },
+  ]),
+);
 ---
 
 <Layout
+  jsonLd={jsonLd}
   content={{
     title: "home | advtszn",
     description: `${age} year old multi-disciplinary engineer, obsessed with scale, speed and aesthetics`,

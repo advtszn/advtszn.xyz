@@ -6,6 +6,13 @@ import Container from "~/components/common/container.astro";
 import WorkCard from "~/components/works/work-card.astro";
 import Layout from "~/layouts/Layout.astro";
 import { getSortedWorks } from "~/lib/works";
+import {
+  absoluteUrl,
+  breadcrumbSchema,
+  graph,
+  serializeJsonLd,
+  SITE,
+} from "~/lib/seo";
 
 export const getStaticPaths = (async () => {
   const works = await getSortedWorks();
@@ -27,12 +34,47 @@ const formatDate = (date: Date): string => {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   return `${month}/${date.getFullYear()}`;
 };
+
+const jsonLd = serializeJsonLd(
+  graph([
+    {
+      "@type": "CreativeWork",
+      "@id": `${Astro.url.href}#work`,
+      name: work.data.title,
+      headline: work.data.title,
+      description: work.data.overview,
+      abstract: work.data.contribution,
+      datePublished: work.data.date.toISOString(),
+      genre: work.data.category,
+      keywords: work.data.tech.join(", "),
+      inLanguage: "en",
+      image: absoluteUrl(work.data.thumbnail, Astro.site),
+      creator: { "@type": "Person", name: SITE.author, url: absoluteUrl("/", Astro.site) },
+      author: { "@type": "Person", name: SITE.author, url: absoluteUrl("/", Astro.site) },
+      mainEntityOfPage: { "@type": "WebPage", "@id": Astro.url.href },
+      isPartOf: { "@id": `${Astro.site}#website` },
+      ...(work.data.url ? { sameAs: [work.data.url] } : {}),
+    },
+    breadcrumbSchema(
+      [
+        ["home", "/"],
+        ["works", "/works/"],
+        [work.data.title, `/work/${work.id}/`],
+      ],
+      Astro.site,
+    ),
+  ]),
+);
 ---
 
 <Layout
+  jsonLd={jsonLd}
   content={{
     title: `${work.data.title} | advtszn`,
     description: work.data.overview,
+    type: "article",
+    image: work.data.thumbnail,
+    publishedTime: work.data.date,
   }}
 >
   <main>

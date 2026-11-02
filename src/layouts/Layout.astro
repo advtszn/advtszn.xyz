@@ -4,17 +4,37 @@ import Lightbox from "~/components/common/lightbox.astro";
 import Sidebar from "~/components/common/sidebar.astro";
 import { ClientRouter } from "astro:transitions";
 import Navbar from "~/components/common/navbar.astro";
+import { absoluteUrl, SITE } from "~/lib/seo";
 
 interface Props {
   content: {
     title: string;
     description: string;
+    /** "article" for a single writing or case study; "website" otherwise. */
+    type?: "website" | "article";
+    /** Absolute path to a page-specific share image. */
+    image?: string;
+    publishedTime?: Date;
+    modifiedTime?: Date;
   };
+  /** Pre-serialized JSON-LD @graph for this page (see `~/lib/seo`). */
+  jsonLd?: string;
 }
 
 const {
-  content: { description, title },
+  content: {
+    description,
+    title,
+    type = "website",
+    image = "/og-image.png",
+    publishedTime,
+    modifiedTime,
+  },
+  jsonLd,
 } = Astro.props;
+
+const canonical = absoluteUrl(Astro.url.pathname, Astro.site);
+const shareImage = absoluteUrl(image, Astro.site);
 ---
 
 <!doctype html>
@@ -48,7 +68,11 @@ const {
     <!-- metadata -->
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
-    <meta name="author" content="advtszn" />
+    <meta name="author" content={SITE.name} />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
 
     <!-- title -->
     <title>{title}</title>
@@ -57,21 +81,54 @@ const {
     <link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml" />
 
     <!-- open graph -->
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={type} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content={`${Astro.site}/og-image.png`} />
-    <meta property="og:url" content={Astro.site} />
-    <meta property="og:site_name" content="advtszn" />
+    <meta property="og:image" content={shareImage} />
+    <meta property="og:image:alt" content={title} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:locale" content="en_US" />
+    {
+      type === "article" && publishedTime && (
+        <meta
+          property="article:published_time"
+          content={publishedTime.toISOString()}
+        />
+      )
+    }
+    {
+      type === "article" && (modifiedTime ?? publishedTime) && (
+        <meta
+          property="article:modified_time"
+          content={(modifiedTime ?? publishedTime)!.toISOString()}
+        />
+      )
+    }
+    {
+      type === "article" && (
+        <meta property="article:author" content={SITE.author} />
+      )
+    }
 
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={`${Astro.site}/og-image.png`} />
-    <meta name="twitter:creator" content="@advtszn" />
+    <meta name="twitter:image" content={shareImage} />
+    <meta name="twitter:image:alt" content={title} />
+    <meta name="twitter:creator" content={SITE.handle} />
+    <meta name="twitter:site" content={SITE.handle} />
 
-    <link rel="canonical" href={Astro.site} />
+    <link rel="canonical" href={canonical} />
+    <link
+      rel="sitemap"
+      type="application/xml"
+      title="Sitemap"
+      href="/sitemap.xml"
+    />
+
+    {jsonLd && <script type="application/ld+json" set:html={jsonLd} is:inline />}
 
     <ClientRouter />
   </head>

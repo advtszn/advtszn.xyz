@@ -3,6 +3,13 @@ import Container from "~/components/common/container.astro";
 import Layout from "~/layouts/Layout.astro";
 import { getCollection, render } from "astro:content";
 import { ArrowLeft } from "lucide-astro";
+import {
+  absoluteUrl,
+  breadcrumbSchema,
+  graph,
+  serializeJsonLd,
+  SITE,
+} from "~/lib/seo";
 
 export async function getStaticPaths() {
   const writings = await getCollection("writings");
@@ -22,12 +29,42 @@ const formatDate = (date: Date) =>
 
 const { writing } = Astro.props;
 const { Content } = await render(writing);
+
+const jsonLd = serializeJsonLd(
+  graph([
+    {
+      "@type": "BlogPosting",
+      "@id": `${Astro.url.href}#article`,
+      headline: writing.data.title,
+      description: writing.data.description,
+      datePublished: writing.data.date.toISOString(),
+      dateModified: writing.data.date.toISOString(),
+      inLanguage: "en",
+      image: absoluteUrl("/og-image.png", Astro.site),
+      author: { "@type": "Person", name: SITE.author, url: absoluteUrl("/", Astro.site) },
+      publisher: { "@type": "Person", name: SITE.author, url: absoluteUrl("/", Astro.site) },
+      mainEntityOfPage: { "@type": "WebPage", "@id": Astro.url.href },
+      isPartOf: { "@id": `${Astro.site}#website` },
+    },
+    breadcrumbSchema(
+      [
+        ["home", "/"],
+        ["writings", "/writings/"],
+        [writing.data.title, `/writings/${writing.id}/`],
+      ],
+      Astro.site,
+    ),
+  ]),
+);
 ---
 
 <Layout
+  jsonLd={jsonLd}
   content={{
     title: `${writing.data.title} | advtszn`,
     description: writing.data.description,
+    type: "article",
+    publishedTime: writing.data.date,
   }}
 >
   <main>

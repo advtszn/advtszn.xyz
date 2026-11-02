@@ -1,0 +1,5 @@
+# https://advtszn.xyz
+User-agent: *
+Allow: /
+
+Sitemap: https://advtszn.xyz/sitemap.xml

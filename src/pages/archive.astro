@@ -5,6 +5,7 @@ import BlurImage from "~/components/common/blur-image.astro";
 import { generateLQIPFromPath } from "~/lib/lqip";
 import { cn } from "~/lib/utils";
 import path from "path";
+import { breadcrumbSchema, graph, serializeJsonLd } from "~/lib/seo";
 
 import LOVE from "~/assets/gfx/LOVE.webp";
 import MILLENIUM from "~/assets/gfx/MILLENIUM.webp";
@@ -122,9 +123,29 @@ const images = await Promise.all([
     lqip: await generateLQIPFromPath(path.join(assetsDir, "speed.webp")),
   },
 ]);
+
+const jsonLd = serializeJsonLd(
+  graph([
+    {
+      "@type": "CollectionPage",
+      "@id": `${Astro.url.href}#page`,
+      name: "archive",
+      isPartOf: { "@id": `${Astro.site}#website` },
+    },
+    breadcrumbSchema(
+      [
+        ["home", "/"],
+        ["archive", "/archive/"],
+      ],
+      Astro.site,
+    ),
+  ]),
+);
+
 ---
 
 <Layout
+  jsonLd={jsonLd}
   content={{
     title: "archive | advtszn",
     description:
