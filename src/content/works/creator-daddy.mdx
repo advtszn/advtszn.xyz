@@ -1,0 +1,95 @@
+---
+title: Creator Daddy
+category: experiment
+role: fullstack
+tech:
+  - typescript
+  - nextjs
+  - ai-sdk
+  - chromadb
+date: 2026-01-12
+featured: false
+thumbnail: /images/creator-daddy/thumbnail.png
+timeline: 5 days
+overview: Creator Daddy is an agentic chatbot that lets brands search for content creators in natural language, matching queries against AI-generated summaries of each creator's niche, content style, and target audience.
+contribution: Built the whole thing as a weekend experiment at wldd, from the creator scraping and enrichment pipeline to the vector retrieval system and the chat interface on top.
+---
+
+import Screenshot from "~/components/common/screenshot.astro";
+import multiEmbeddings from "~/assets/images/creator-daddy/multi-embeddings.png";
+import pipelineLifecycle from "~/assets/images/creator-daddy/pipeline-lifecycle.png";
+
+<figure class="my-12 flex flex-col items-center gap-2">
+<div class="w-full max-w-4xl">
+    <video class="rounded w-full" src="/videos/creator-daddy/demo.mp4" autoplay loop muted playsinline />
+  </div>
+  
+  <figcaption class="text-muted-foreground text-sm">
+    asking creators that fit "streetwear brand promotion"
+  </figcaption>
+</figure>
+
+
+
+## How It Started
+
+This started as a product brief from the CTO at wldd, who showed me designs for an internal chatbot and asked me to figure out one thing: how do you generate embeddings for creators and their content? The first 2-3 days went into fiddling with scraping and enrichment, and the chatbot interface and retrieval pipeline came together over the weekend.
+
+The core insight is that a creator isn't one thing. A query like "fitness creators with a comedic style who appeal to Gen Z" is really three separate questions: what do they make (niche), how do they make it (style), and who watches it (audience). Collapsing all of that into a single embedding per creator muddies each signal, so the system keeps them separate.
+
+I'd picked up both the multi-embedding and hybrid retrieval patterns a little earlier, from the take-home assignment i built for my interview at [gitroll.io](https://gitroll.io), and those ideas carried straight over into this build.
+
+
+
+
+## The Enrichment Pipeline
+
+I shortlisted 15 creators across different niches and scraped two things for each: their profile, for static metadata like location and follower count, and their top reels, for the actual content signal. The scraping ran through an Instagram scraper API on RapidAPI — on the free tier, which caps out fast. The workaround was signing up with six different emails and running the batch fetcher through a key manager that tracks request counts and auto-rotates to the next key whenever one runs dry or gets rate limited, with Claude Code driving the fetch end to end.
+
+<div class="my-12 flex justify-center">
+  <blockquote class="twitter-tweet" data-theme="dark"><p lang="en" dir="ltr">signed up with 6 different emails on rapidapi for an instagram scraper api<br/><br/>made claude code fetch data of ~15 creators. what a time to be alive</p>— advait (@advtszn) <a href="https://twitter.com/advtszn/status/2010026586519855189">January 2026</a></blockquote>
+</div>
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+Each creator's reels then get uploaded via the Gemini Files API and fed to `gemini-2.5-flash` in a single pass, which returns a structured JSON profile with three distinct summaries per creator: one describing their niche, one describing their content style, and one describing their target audience. (I also prototyped the video analysis with TwelveLabs' marengo and pegasus models before settling on Gemini)
+
+Those summaries are embedded with `gemini-embedding-001` and stored in three separate ChromaDB collections, one per facet. Every embedding carries the creator's unique ID as metadata, and the static profile data lives in MongoDB keyed by that same ID. The vector store answers "who matches this vibe," and MongoDB answers "tell me about them."
+
+## Multi-Facet Retrieval
+
+The chatbot itself is a Next.js app on the Vercel AI SDK, with Gemini 3 Flash driving the conversation. When the user asks for creators, the model calls a `getCreators` tool with a distilled search query.
+
+The tool fans that query out to all three Chroma collections in parallel, pulling the top 10 matches from each. Results are merged by creator ID, so a creator who shows up in two or three facets accumulates evidence, and each facet's vector distance is converted to a similarity score and combined with tunable weights: 0.4 for niche, 0.35 for style, 0.25 for audience. Niche gets the heaviest weight because "what they make" matters more to a brand than "how it looks," but the weights live in a single const so tuning them is a one-line change.
+
+The merged candidates are then enriched with their MongoDB metadata (name, handle, follower count, profile image) and handed to the next stage.
+
+## Reranking
+
+Vector similarity gets you in the neighborhood, but it's a blunt instrument, so the candidate set gets a second pass through Voyage's `rerank-2.5` model. Each candidate's summaries are serialized (in TOON format, to keep the token count down) and reranked against the original query, keeping the top 6 and dropping anything below a 0.6 relevance score. That cutoff means a vague query returns two great matches instead of six mediocre ones, which is the right tradeoff when a brand is going to actually reach out to these people.
+
+The surviving creators stream back into the chat as cards with their profile, follower count, and the facet summaries that matched, so the user can see *why* each creator was recommended, not just that they were.
+
+
+
+
+## Where I'd Take This
+
+### Hybrid Retrieval
+
+The obvious next step, and one I'd already planned, is hybrid retrieval: combining the semantic search with hard filters on static metadata. "Comedy creators in Korea with over 100k followers" should apply the location and follower constraints as metadata filters inside the vector query rather than hoping the embeddings encode them. Chroma supports metadata filtering natively, so the main work is having the LLM extract structured filters from the query alongside the semantic part.
+
+### Beyond 15 Creators
+
+Fifteen hand-picked creators was enough to prove the retrieval quality, but the real version needs the enrichment pipeline to run continuously: discovering creators, refreshing their top content as it changes, and re-summarizing when a creator pivots niches. That turns a one-off scraping script into a proper ingestion system with scheduling, deduplication, and re-embedding logic, which is exactly the shape of problem the weekend version was designed to de-risk.
+
+The design doc already sketches what that production system looks like: seed a creator, enumerate similar creators through Instagram's discovery graph, and fan each one out to per-facet queues where video analysis workers generate the niche and style summaries and an audience worker analyzes comments — with embeddings regenerated every 30-90 days since a creator's positioning drifts over time.
+
+<Screenshot src={pipelineLifecycle} alt="Pipeline lifecycle from the design doc: seed creator feeding similar-creator discovery, per-facet embedding queues with video analysis and audience workers, storing into MongoDB and a vector database" />
+
+### The Extra Sauce
+
+Two more ideas from the design doc that didn't make the weekend cut.
+
+The first is deeper audience categorization. The weekend build infers the target audience from the videos themselves, but the design doc goes further: analyze the *comments* with a dedicated worker to figure out who's actually engaging rather than who the content looks like it's aimed at. Who a creator attracts and who they're targeting aren't always the same people, and for a brand picking partners, the former is the number that matters.
+
+The second is social graph storage: persisting the creator-to-creator similarity relationships that fall out of Instagram's discovery graph. Embeddings can only surface creators whose content summaries happen to sit near the query, but the graph captures adjacency that content alone misses — creators who share audiences and collab circles without making similar-looking videos. Storing those edges improves recall for fuzzy queries and stabilizes rankings over time, since graph relationships drift far more slowly than content does.

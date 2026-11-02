@@ -1,0 +1,33 @@
+---
+import { Image } from "astro:assets";
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  work: CollectionEntry<"works">;
+  compact?: boolean;
+  loading?: "eager" | "lazy";
+}
+
+const { work, compact = false, loading = "lazy" } = Astro.props;
+---
+
+<a href={`/work/${work.id}`} class="space-y-2 group">
+  <div class="aspect-video rounded group">
+    <Image
+      src={work.data.thumbnail}
+      width={1024}
+      height={576}
+      class="h-full w-full object-cover rounded pointer-fine:grayscale pointer-fine:group-hover:grayscale-0 transition-all duration-500"
+      alt={work.data.title}
+      loading={loading}
+    />
+  </div>
+  <div class="space-y-">
+    <h3 class="text-lg font-medium text-foreground">
+      {work.data.title}
+    </h3>
+    <p class:list={["text-muted-foreground text-sm"]}>
+      {work.data.category} • {work.data.role}
+    </p>
+  </div>
+</a>

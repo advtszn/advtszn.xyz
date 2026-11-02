@@ -23,7 +23,7 @@ the platform is a content site: articles, quizzes, polls, communities, leaderboa
 
 everything runs on a single EC2 instance with 2 CPU cores. MongoDB lives on Atlas, Redis handles leaderboard caching. i drove load with k6, simulating 1000 concurrent users across three flows: browsing (60%), quizzes (25%), and social engagement (15%).
 
-# the EOF mystery: your app never even ran
+## the EOF mystery: your app never even ran
 
 i pointed k6 at the staging API with a load profile built to test endurance, ramp up over one minute to 1000 virtual users, then hold steady at 1000 for five minutes. this was the baseline, and it was grim.
 
@@ -58,7 +58,7 @@ the k6 lifecycle breakdown pointed at two separate problems:
 
 `blocked` over a second meant requests were queuing just to get a connection. a 7.6s TTFB meant the requests that *did* get through hit slow application logic. one was an infrastructure problem, one was a database problem.
 
-# fix 1: the indexes that were quietly doing full scans
+## fix 1: the indexes that were quietly doing full scans
 
 i traced the slowest endpoints from the HTTP route down to the actual MongoDB query. the highest-volume one, the paginated content feed, looked like this:
 
@@ -77,17 +77,17 @@ there was no compound index covering both the `deletedAt` filter and the `create
 
 i added four compound indexes, all with `partialFilterExpression: { deletedAt: null }` so the index only stores non-deleted documents. since every query in the codebase filters `deletedAt: null`, the index stays fully covering but smaller and cheaper to maintain.
 
-# fix 2: one idle core
+## fix 2: one idle core
 
 Node is single-threaded. on a 2-core box, one core was doing everything and the other sat idle. i ran the API under pm2 cluster mode with 2 workers, one per core.
 
-## run 2: the improvement i couldn't see
+### run 2: the improvement i couldn't see
 
 success climbed 19 points to 74.11% and EOFs nearly halved (14,751 to 7,855), but p95 barely moved. worse, TTFB went *up*, from 7.6s to 8.5s.
 
 the slowest requests in run 1 were dying as EOF before k6 could measure them. now they survived, completed, and got counted, which dragged the average up. the indexes had made individual queries faster, but the connection bottleneck was still masking it.
 
-# fix 3: the OS was the ceiling all along
+## fix 3: the OS was the ceiling all along
 
 my CTO's suggestion: watch `htop` during the test. if CPU isn't the bottleneck, it's connection limits.
 
@@ -112,20 +112,20 @@ $ ulimit -n
 the fix, across three layers:
 
 ```bash
-# OS: raise both soft and hard limits (new login sessions only)
+## OS: raise both soft and hard limits (new login sessions only)
 * soft nofile 65535
 * hard nofile 65535
 ```
 
 ```nginx
-# nginx: set its own descriptor ceiling regardless of how systemd launched it
+## nginx: set its own descriptor ceiling regardless of how systemd launched it
 worker_rlimit_nofile 65535;
 events { worker_connections 4096; }
 ```
 
 `worker_rlimit_nofile` is belt-and-suspenders: even with the OS limit raised, systemd can impose its own, so nginx sets its ceiling explicitly at startup.
 
-## run 3: zero transport failures
+### run 3: zero transport failures
 
 <figure>
 
@@ -142,7 +142,7 @@ zero EOFs. `blocked` dropped from over a second to 10ms. the 26 remaining failur
 
 the connection layer was solved, and it left the lifecycle brutally honest: everything was near-zero except TTFB, which sat at 13,426ms. that number was pure server processing time, and it was the whole problem now.
 
-# fix 4: caching the reads that never change
+## fix 4: caching the reads that never change
 
 every request hit MongoDB directly, even for content that is identical for every anonymous user. Redis was already in the stack for leaderboards, so i extended it as a cache layer for the hottest read paths: content entities, the paginated feed, article comments, and community listings.
 
@@ -150,21 +150,21 @@ for individual content lookups i cached the domain entity data, so any use case 
 
 what i deliberately did *not* cache: per-user state like `isFollowed`. that would need one cache key per user, so 1000 users means 1000 separate entries for the same listing page, which defeats the entire point. i cache the shared data and run one cheap query for the per-user bit.
 
-## run 4: throughput doubled
+### run 4: throughput doubled
 
 average latency dropped 75% (13,426ms to 3,329ms) and throughput nearly doubled to 223 req/s. but p95 was still 15s against a 3s target, and the per-endpoint breakdown showed why: the six slowest endpoints were all writes. you can't cache a write.
 
-# fix 5: scaling up the workers
+## fix 5: scaling up the workers
 
 > this backfired later
 
 CPU was still under 40%. the workload was I/O-bound, spending most of its time waiting on MongoDB over the network, so the cores sat idle during those waits. i doubled pm2 workers from 2 to 4. running 4 processes on 2 cores sounds wrong, but while one worker waits on a database response, another can use the idle CPU. concurrency past the core count *hides* latency when the work is waiting rather than computing.
 
-## run 5: the biggest single jump
+### run 5: the biggest single jump
 
 throughput doubled again to 467 req/s and p95 fell 55% to 6,857ms. median latency dropped to 135ms, so most requests were now genuinely fast, and the pain was entirely in the write-heavy tail.
 
-# fix 6 and 7: killing the write tail
+## fix 6 and 7: killing the write tail
 
 two rounds of work went after the writes, which were now the entire problem.
 
@@ -176,11 +176,11 @@ two rounds of work went after the writes, which were now the entire problem.
 
 i set `readPreference: 'secondaryPreferred'` to fan reads out across the secondaries and reserve the primary for writes. the asynchronous lag is the catch: a read from a secondary can miss a write that just happened on the primary. so i forced session and OTP lookups back to the primary, where staleness isn't acceptable.
 
-## run 7: all four thresholds green
+### run 7: all four thresholds green
 
 write latencies fell 56-76%: a like went from 4,723ms to 1,212ms, adding a comment from 4,811ms to 1,139ms. p95 landed at 2,846ms, 154ms under the 3s target, and for the first time every threshold passed. i could have stopped here. i'm glad i didn't, because the next fix taught me the most.
 
-# fix 8: the last 700ms came from deleting processes
+## fix 8: the last 700ms came from deleting processes
 
 this is the one fix in the whole journey that *reverses* an earlier one. fix 5 doubled the API workers from 2 to 4 and it was the single biggest win at the time. here i cut them back to 2 and got the biggest latency drop of the entire project. both were correct, because the workload underneath had changed.
 
@@ -205,13 +205,13 @@ back at fix 5, every request sat waiting on an I/O operation (network calls to r
 
 so the 4-worker config was never fundamentally right. it was a workaround compensating for a slow database, and the moment i fixed the real cause, the workaround became the problem.
 
-## run 8: sub-1s p95
+### run 8: sub-1s p95
 
 p95 crashed 73% to 777ms and throughput climbed to 756 req/s, both on the same 2-core box (full numbers in the summary below). the active CPU competitors on the latency path went from 6 cluster workers to 2, exactly matching the experiment. every one of the 307,615 requests over the five-minute steady window came back successful, and 97.3% of them landed in under a second.
 
 that same run had a *measured* p99 of 3,714ms, and the entire gap over p95 is one ~15-second window where every endpoint froze in lockstep, no errors, no restart. exclude that window and p99 drops to ~1,454ms. a box-wide freeze with no errors is the signature of a GC or swap event, likely because every process launched with a 2GB heap ceiling whose sum can exceed the box's RAM. right-sizing those heaps is next on the list, not a per-endpoint tail to chase.
 
-# the full journey
+## the full journey
 
 <figure>
 

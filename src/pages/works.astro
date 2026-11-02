@@ -1,56 +1,66 @@
 ---
-import Container from "~/components/common/container.astro";
+import WorkCard from "~/components/works/work-card.astro";
 import Layout from "~/layouts/Layout.astro";
-import { getCollection, render } from "astro:content";
-import WorksList from "~/components/works/works-list";
-import Link from "~/components/common/link.astro";
+import { getSortedWorks } from "~/lib/works";
+import {
+  breadcrumbSchema,
+  graph,
+  itemListSchema,
+  serializeJsonLd,
+} from "~/lib/seo";
 
-const entries = (await getCollection("works")).sort(
-  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
-);
+const works = await getSortedWorks();
 
-const works = entries.map(({ id, data }) => ({ id, ...data }));
-
-const descriptions = await Promise.all(
-  entries.map(async (entry) => ({
-    id: entry.id,
-    Content: (await render(entry)).Content,
-  })),
+const jsonLd = serializeJsonLd(
+  graph([
+    {
+      "@type": "CollectionPage",
+      "@id": `${Astro.url.href}#page`,
+      name: "works",
+      isPartOf: { "@id": `${Astro.site}#website` },
+      mainEntity: itemListSchema(
+        works.map(({ id, data }) => ({ name: data.title, path: `/work/${id}/` })),
+        Astro.site,
+      ),
+    },
+    breadcrumbSchema(
+      [
+        ["home", "/"],
+        ["works", "/works/"],
+      ],
+      Astro.site,
+    ),
+  ]),
 );
 ---
 
 <Layout
+  jsonLd={jsonLd}
   content={{
     title: "works | advtszn",
     description:
       "products and experiments i am/was affiliated with, with case studies of selected works",
   }}
 >
-  <main>
-    <Container>
-      <div class="space-y-4">
-        <div class="space-y-4 lg:max-w-[45%]">
-          <h1 class="font-heading text-3xl font-medium md:text-5xl">works</h1>
-          <p class="text-muted-foreground text-lg text-justify">
-            products and experiments i am/was affiliated with. for a visual
-            showcase and case studies of selected works: <Link
-              target="_blank"
-              href="https://works.advtszn.xyz">works.advtszn.xyz</Link
-            >
-          </p>
-        </div>
-        <div class="py-6">
-          <WorksList works={works} client:load>
-            {
-              descriptions.map(({ id, Content }) => (
-                <div data-work-id={id} hidden>
-                  <Content />
-                </div>
-              ))
-            }
-          </WorksList>
-        </div>
+  <main class="space-y-6 py-8 pb-12 lg:py-12">
+    <div class="mx-auto max-w-xl space-y-4 px-4 lg:px-0">
+      <h1
+        class="text-2xl font-medium text-foreground border-b pb-2"
+      >
+        works
+      </h1>
+    </div>
+
+    <div class="px-4 lg:px-24">
+      <div
+        class="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-x-4 lg:grid-cols-3"
+      >
+        {
+          works.map((work, i) => (
+            <WorkCard work={work} compact loading={i < 6 ? "eager" : "lazy"} />
+          ))
+        }
       </div>
-    </Container>
+    </div>
   </main>
 </Layout>

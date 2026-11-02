@@ -1,11 +1,11 @@
 ---
-import Container from "~/components/common/container.astro";
 import Layout from "~/layouts/Layout.astro";
 import { Image } from "astro:assets";
 import BlurImage from "~/components/common/blur-image.astro";
 import { generateLQIPFromPath } from "~/lib/lqip";
 import { cn } from "~/lib/utils";
 import path from "path";
+import { breadcrumbSchema, graph, serializeJsonLd } from "~/lib/seo";
 
 import LOVE from "~/assets/gfx/LOVE.webp";
 import MILLENIUM from "~/assets/gfx/MILLENIUM.webp";
@@ -123,25 +123,45 @@ const images = await Promise.all([
     lqip: await generateLQIPFromPath(path.join(assetsDir, "speed.webp")),
   },
 ]);
+
+const jsonLd = serializeJsonLd(
+  graph([
+    {
+      "@type": "CollectionPage",
+      "@id": `${Astro.url.href}#page`,
+      name: "archive",
+      isPartOf: { "@id": `${Astro.site}#website` },
+    },
+    breadcrumbSchema(
+      [
+        ["home", "/"],
+        ["archive", "/archive/"],
+      ],
+      Astro.site,
+    ),
+  ]),
+);
+
 ---
 
 <Layout
+  jsonLd={jsonLd}
   content={{
     title: "archive | advtszn",
     description:
       "cover arts and posters from when i used to do graphic designing",
   }}
 >
-  <main>
-    <Container>
-      <div class="">
-        <div class="mb-8 space-y-2">
-          <h1 class="font-heading text-3xl font-medium md:text-5xl">archive</h1>
-          <p class="text-muted-foreground text-lg text-justify">
-            cover arts and posters from when i used to do graphic designing
-          </p>
-        </div>
+  <main class="space-y-6 py-8 pb-12 lg:py-12">
+    <div class="mx-auto max-w-xl space-y-4 px-4 lg:px-0">
+      <h1
+        class="text-2xl font-medium text-foreground border-b pb-2"
+      >
+        archive
+      </h1>
+    </div>
 
+    <div class="px-4 lg:px-24">
         <div
           id="masonry"
           class={cn(
@@ -164,7 +184,6 @@ const images = await Promise.all([
             ))
           }
         </div>
-      </div>
-    </Container>
+    </div>
   </main>
 </Layout>
