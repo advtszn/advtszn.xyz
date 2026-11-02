@@ -2,6 +2,12 @@
 import Ascii from "ascii.rest/astro";
 import Link from "../common/link.astro";
 
+type Props = {
+  age: number;
+};
+
+const { age } = Astro.props;
+
 // Rendered at build time so the line has its final width before the script
 // runs; the clock corrects it to the real hour on first tick.
 const initialTime = new Intl.DateTimeFormat("en-GB", {
@@ -29,17 +35,16 @@ const initialTime = new Intl.DateTimeFormat("en-GB", {
       advait <span class="text-sm text-muted-foreground">(advtszn)</span>
     </h1>
     <p class="text-sm text-muted-foreground font-medium">
-      multidisciplinary engineer
+      {age}, multidisciplinary engineer
     </p>
   </div>
 
-  <div class="space-y-6 leading-[150%] tracking-wide">
+  <div class="space-y-6 leading-[150%] text-justify tracking-wide">
     <p>
       software engineer at{" "}
       <Link href="https://wldd.in" target="_blank">
-        wldd.in</Link>; prev. <Link href="/work/kimchipremium">kimchipremium.io</Link>. my
-      day-to-day revolves around backend, but i'm really obsessive about good
-      typography and ux
+        wldd.in</Link>
+      ; prev. <Link href="/work/kimchipremium">kimchipremium.io</Link>. my day-to-day revolves around backend, but i'm really obsessive about good typography and ux
     </p>
 
     <div class="space-y-2">
@@ -47,9 +52,9 @@ const initialTime = new Intl.DateTimeFormat("en-GB", {
 
       <ul class="list-disc list-inside space-y-2">
         <li>
-          <Link href="/work/listable-labs">listable labs</Link>
-          : built prompt eval pipeline, background job processing, multi-tenant
-          blogs on custom domains etc.
+          backend eng. for <Link href="/work/listable-labs">listable labs</Link>: built prompt
+          eval pipeline, background job processing, multi-tenant blogs on custom
+          domains etc.
         </li>
 
         <li>

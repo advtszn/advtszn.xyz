@@ -4,12 +4,7 @@ import HeroSection from "~/components/home/hero-section.astro";
 import WorksSection from "~/components/home/works-section.astro";
 import WritingsSection from "~/components/home/writings-section.astro";
 import SocialsSection from "~/components/home/socials-section.astro";
-import {
-  graph,
-  personSchema,
-  serializeJsonLd,
-  websiteSchema,
-} from "~/lib/seo";
+import { graph, personSchema, serializeJsonLd, websiteSchema } from "~/lib/seo";
 
 const birthDate = new Date("2007-08-28");
 const today = new Date();
@@ -43,7 +38,7 @@ const jsonLd = serializeJsonLd(
   }}
 >
   <div class="space-y-12 lg:space-y-20 py-10 pb-20 lg:py-12">
-    <HeroSection />
+    <HeroSection age={age} />
     <WorksSection />
     <WritingsSection />
     <SocialsSection />
