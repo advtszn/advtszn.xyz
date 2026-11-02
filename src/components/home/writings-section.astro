@@ -1,7 +1,7 @@
 ---
 import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-astro";
 import Link from "../common/link.astro";
 
 const writings = (await getCollection("writings")).sort(
@@ -18,7 +18,7 @@ const writings = (await getCollection("writings")).sort(
         class="inline-flex items-center gap-x-1 text-sm font-medium hover:text-foreground transition-colors"
       >
         view all
-        <ArrowUpRight className="size-3" />
+        <ArrowUpRight class="size-3" />
       </a>
     </div>
   </div>
