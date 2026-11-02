@@ -63,12 +63,12 @@ const formatDate = (date: Date): string => {
             <div class="flex gap-6 md:gap-12 flex-col">
               <div class="space-y-1">
                 <h2 class="font-heading text-foreground font-medium">
-                  timeline
+                  Timeline
                 </h2>
                 <p class="text-muted-foreground font-prose">{work.data.timeline}</p>
               </div>
               <div class="space-y-1">
-                <h2 class="font-heading text-foreground font-medium">live</h2>
+                <h2 class="font-heading text-foreground font-medium">Live</h2>
                 <p class="text-muted-foreground font-prose">
                   {
                     work.data.url ? (
@@ -88,7 +88,7 @@ const formatDate = (date: Date): string => {
                 </p>
               </div>
               <div class="space-y-1">
-                <h2 class="font-heading text-foreground font-medium">tech</h2>
+                <h2 class="font-heading text-foreground font-medium">Tech used</h2>
                 <p class="text-muted-foreground font-prose">{work.data.tech.join(", ")}</p>
               </div>
             </div>
@@ -98,7 +98,7 @@ const formatDate = (date: Date): string => {
             <div class="flex gap-6 md:gap-12 flex-col">
               <div class="space-y-1">
                 <h2 class="font-heading text-foreground font-medium">
-                  overview
+                  Overview
                 </h2>
                 <p class="text-muted-foreground text-justify font-prose">
                   {work.data.overview}
@@ -106,7 +106,7 @@ const formatDate = (date: Date): string => {
               </div>
               <div class="space-y-1">
                 <h2 class="font-heading text-foreground font-medium">
-                  what i built
+                  What I Built
                 </h2>
                 <p class="text-muted-foreground text-justify font-prose">
                   {work.data.contribution}

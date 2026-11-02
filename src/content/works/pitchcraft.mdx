@@ -33,18 +33,20 @@ import deckProof from "~/assets/images/pitchcraft/deck-proof.png";
 import researchTrail from "~/assets/images/pitchcraft/research-trail.png";
 import artifact from "~/assets/images/pitchcraft/artifact.png";
 
+## Background
+
+[WLDD](https://wldd.in) hosted an internal company-wide hackathon during the first week of october and i chose the following problem statement: a system that takes a brand and automatically builds a pitch plan we could send to them. Research on the brand, which of our services fit, and why it is relevant, with everything traceable to something real. The output had to read like a plan a brand would receive, not a summary of our own history.
+
 <figure class="my-12 flex flex-col items-center gap-2">
-  <video class="rounded max-w-5xl w-full" src="/videos/pitchcraft/demo.mp4" autoplay loop muted playsinline />
+  <div class="w-full max-w-4xl">
+    <video class="rounded w-full" src="/videos/pitchcraft/demo.mp4" autoplay loop muted playsinline />
+  </div>
   <figcaption class="text-muted-foreground text-sm">
     one line in, a deck out: "build a pitch for Coca-Cola", start to finish
   </figcaption>
 </figure>
 
-## Deep Dive
-
-[WLDD](https://wldd.in) hosted an internal company-wide hackathon during the first week of october and i chose the following problem statement: a system that takes a brand and automatically builds a pitch plan we could send to them. Research on the brand, which of our services fit, and why it is relevant, with everything traceable to something real. The output had to read like a plan a brand would receive, not a summary of our own history.
-
-### The initial idea
+## The initial idea
 
 One thing never changed from the first night to the demo: the UX was going to be agent-first, and it was going to borrow heavily from [orbe](/work/orbe). I had spent enough time on building a good design system, and with two days on the clock I had no intention of designing a new one from scratch again.
 
@@ -56,30 +58,28 @@ A production grade RAG setup is real time, real effort and real money, and at th
 
 During the pre-build 1:1 with Jayant and Aryan when i shared my approach i was told that the archive is only 15 pitches, not the archive I had designed against, which is not enough rows to build "knowledge" from however carefully you enrich them. And the 1:1 closed the path deliberately rather than by accident.
 
-The 15 pitches then more or less existed to derive how pitch kits are actually written, the pattern, not to serve as runtime source material. The product has to be independent of how much history exists, because it has to work for one-timers and first-timers, brands with no usable past reference. That is the normal case, not the edge case. The moat then came down to the research loop. how context-aware the research is? if diwali is coming up will it suggest a campaign designed around that festival aligned with the brand's rep?
+The 15 pitches then more or less existed to derive how pitch kits are actually written, not to serve as runtime source material. The product has to be independent of how much history exists, because it has to work for brands with no usable past reference. The moat then came down to the research loop. how context-aware the research is? if diwali is coming up will it suggest a campaign designed around that festival aligned with the brand's rep?
 
 
-### What I Built
+## What I Built
 
-I built a multi-agent system on the [orchestrator-worker](https://ai-sdk.dev/docs/agents/workflows#orchestrator-worker) pattern: a root agent that plans the research, farms it out to three specialised workers at once, and composes what they return into a brief for a writer, which streams the pitch back for the app to render as an artifact.
+I built a [orchestrator-worker](https://ai-sdk.dev/docs/agents/workflows#orchestrator-worker) pattern multi-agent system: a root agent that plans the research, farms it out to three specialised workers at once, and composes what they return into a brief for a writer, which streams the pitch back for the app to render as an artifact.
 
 
-<Screenshot src={orchestrator} alt="Orchestrator-worker flow: a brand name goes to the root agent, which sends a task to brand-researcher, social-listening and competitor-analysis, whose findings converge on write-artifact, which outputs the deck" />
+<Screenshot src={orchestrator}  alt="Orchestrator-worker flow: a brand name goes to the root agent, which sends a task to brand-researcher, social-listening and competitor-analysis, whose findings converge on write-artifact, which outputs the deck" />
 
 
 All three researchers run with reasoning set to none, because they execute a tightly specified search protocol and return a fixed contract, so thinking tokens there pump up latency and tokens without actually making a real impact. The compilation is done by the same root orchestrator agent after reading the result of its subagents.
 
 The one thing injected into the root on every turn is the date. A model has no clock, so left alone it reaches for plausible-sounding dates and lands in the wrong year, which is fatal for this particular job: the whole point of the research being live is that the pitch knows what season it is going into. So each turn starts with today's date and a planning window 45 days out, and an instruction never to state a date it has not verified against a source. That is what makes a pitch able to notice that Diwali is three weeks away, or that the brand's category spikes with the race calendar, rather than writing something timing-blind.
 
-**brand-researcher** works the corporate record through [context.dev](https://context.dev), with search and scrape its only tools, capped at eight calls and twelve findings shaped `{signal, claim, excerpt, sourceUrl, confidence}`. It contributes stage and age — a heritage label in a turnaround and a two-year-old riding a trend want opposite work — and the brand's own language verbatim, which everything else is measured against. It may not evaluate or suggest.
+**brand-researcher** works the corporate record through [context.dev](https://context.dev). It contributes stage and age, a heritage label in a turnaround and a two-year-old riding a trend want opposite work — and the brand's own language verbatim, which everything else is measured against. It may not evaluate or suggest.
 
-**social-listening** works Reddit and X. It contributes the tension: a theme repeated by strangers, where what people say collides with what the brand claims, and the words the brand would never print — that last one is what a campaign gets named after. The brand's own name is the weakest query; people complain about the category, the habit and the price long before they name a company.
+**social-listening** works Reddit and X. It contributes the tension: a theme repeated by strangers, where what people say collides with what the brand claims, and the words the brand would never print.
 
-**competitor-analysis** contributes what is already taken, across exactly three rivals, found the way customers find them — the comparisons people actually write, not a category listicle. It resolves each through context.dev's brand lookup before paying to scrape; one cheap call returns positioning, category and socials. An idea earns its place only if it couldn't be handed to a rival unchanged.
+**competitor-analysis** works the comparisons customers already write. It searches the way a buyer searches — "x vs y", "alternatives to x" — and keeps the three rivals that come back repeatedly, rather than the three a category listicle would name. Each one goes through context.dev's brand lookup before anything gets scraped: one cheap call returns positioning, category and socials.
 
-**profile-instagram** is a tool, not an agent — no model at all. The first version ran the grid through Gemini's image and video intelligence to read what a brand's content is like. I dropped it on purpose: expensive, and slow enough to hold up the whole pipeline behind it.
-
-So it became heuristic: post frequency against the window the feed spans, format mix, median and top reach, the outlier ratio, and the captions on the four best posts with their URLs. Five posts a week at a flat 1.2x is grinding with nothing breaking out; one a week at 14x has found a format and isn't repeating it. A deck-opening tension out of arithmetic, for a fraction of the cost.
+i also added a `profile-instagram` tool. The first version ran the profile grid through Gemini's image and video intelligence to read what a brand's content is like. I dropped it because it was slow and instead made it heuristic. it measured post frequency against the window the feed spans, format mix, median and top reach, the outlier ratio etc.
 
 The agent runs on [eve](https://eve.dev), which I picked for the runtime and the abstraction, and the UI is a Next.js app with tRPC and Drizzle over Postgres and Supabase for auth. The app invokes the agent, and the research trail fills in live as the children report back. The finished deck renders through react-pdf as landscape slides, set in the brand's own colours, which come from the same context.dev brand lookup: the palette, the logo, and a judgement call on which hex is actually the accent, since a brand's palette usually leads with a black or an off-white and neither of those makes an accent.
 
@@ -88,7 +88,7 @@ The agent runs on [eve](https://eve.dev), which I picked for the runtime and the
   <Screenshot src={artifact} alt="The finished pitch open in the document panel beside the conversation, tension and reframe written out with every claim an inline link to its source" />
 </div>
 
-### What Came Out Of It
+## What Came Out Of It
 
 You drop in a brand name and you get back a pitch deck that looks like that brand, with research behind it that comes from real, checkable sources rather than from whatever the model remembers. That was the whole bet and it held up.
 

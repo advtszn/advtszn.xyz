@@ -27,98 +27,91 @@ import eventDetail from "~/assets/images/kirrin/event-detail.png";
 import people from "~/assets/images/kirrin/people.png";
 import actions from "~/assets/images/kirrin/actions.png";
 
-<figure class="my-12 flex flex-col items-center gap-2">
-  <video class="rounded max-w-5xl w-full" src="/videos/kirrin/walkthrough.mp4" autoplay loop muted playsinline />
-  <figcaption class="text-muted-foreground text-sm">
-    sign in, launch an org, ask the knowledge base a question. from <a href="https://x.com/advtszn/status/1980303810041086429" target="_blank" rel="noopener">this thread</a>
-  </figcaption>
-</figure>
 
-## Deep Dive
 
-### What Kirrin Was Supposed to Be
+
+## What Kirrin Was Supposed to Be
 
 Organizations still run on human memory, and human memory is a bad place to keep anything. A brain can hold N things at once, where N is honestly one, and instead of accepting that we convinced ourselves multitasking is a skill. So context leaks. The decision happens in a Slack thread, the reasoning behind it is in a Google Doc, the person who owned it left, and six weeks later nobody can reconstruct why the company does it this way. Every tool you add is another place for context to go and not come back.
 
 Kirrin was meant to be orchestration tissue sitting between an organization and its tools. We had it mapped as three layers:
 
-**Knowledge** builds the organization's whole context. Everything the org produces, in one searchable substrate.
+**Knowledge** builds the organization's whole context, from the tools and platforms being used in the organization. Everything the org produces, in one searchable substrate.
 
 **Perception** gives people a view into that knowledge and floats pointers like: this SOP is not being followed, this middle manager is presenting someone else's work as their own. Endless possibilities.
 
 **Action** is specialized agents that act on the knowledge and on what perception surfaces.
 
-My cofounder ran a marketing and consulting agency out of Gujarat, so he had hit this problem directly working with MSMEs there, and Gujarat has more MSMEs than any other state in India. That was the wedge: not enterprises with a Palantir budget, but the mid-sized businesses where all of this context lives in three people's heads and a WhatsApp group.
+My cofounder ran a marketing and consulting agency out of Gujarat, so he had hit this problem directly working with MSMEs there. That was the wedge: not enterprises with a Palantir budget, but the mid-sized businesses where all of this context lives in three people's heads and a WhatsApp group.
 
-### Ingestion
+<figure class="my-12 flex flex-col items-center gap-2">
+<div class="w-full max-w-4xl">
+    <video class="rounded w-full" src="/videos/kirrin/walkthrough.mp4" autoplay loop muted playsinline />
+  </div>
+  
+  <figcaption class="text-muted-foreground text-sm">
+    sign in, launch an org, ask the knowledge base a question. from <a href="https://x.com/advtszn/status/1980303810041086429" target="_blank" rel="noopener">this thread</a>
+  </figcaption>
+</figure>
+
+## Ingestion
 
 Notion and Google Drive connect over OAuth. Access and refresh tokens are encrypted before they ever hit the database, AES-256-GCM with a per-token salt and IV and a scrypt-derived key, stored as a JSONB blob. Connecting an integration drops a job on a BullMQ queue, and a worker process picks it up.
 
 The Notion worker walks the workspace, reconstructs each page back into markdown (which took a while to get right, because Notion blocks are a tree of rich-text annotations, not a document), and the Drive worker exports files through the Drive API. Either way the result is markdown, and from there both paths converge: Gemini summarizes the document into a plaintext summary and at most five short tags, the body gets chunked and embedded with `gemini-embedding-001` at 1536 dimensions, and the chunks land in a `memories` table with an ivfflat index over cosine distance.
 
-Everything is scoped to an organization, so a multi-tenant query never crosses a tenant boundary. Slack was wired up to the OAuth stage and never got a sync worker, which you can see on the integrations screen: it is the one card that still says Connect.
 
 <Screenshot src={integrations} alt="integrations screen with Notion and Google Drive connected and Slack still offering Connect" />
 
-### Memory and the Agent
+## Knowledge Agent
 
-On top of that sits the knowledge agent. Two tools: `searchMemory` against the vector store, and a web search tool backed by Exa for anything the org's own documents can't answer. The system prompt tells it to decide which of the two a question needs, call both when both would help, cap itself at five steps, and attribute whether an answer came from internal memory or the open web. Chat history lives in Redis with a short TTL.
+On top of that sits the knowledge agent. Two tools: `searchMemory` against the vector store, and a web search tool for anything the org's own documents can't answer. There's a Telegram bot built on Grammy, where you link your Telegram account to your Kirrin account through a one-time token and then just talk to the same agent in a DM.
 
-The agent is also the only part of the product that existed on more than one surface. There's a Telegram bot built on Grammy, where you link your Telegram account to your Kirrin account through a one-time token and then just talk to the same agent in a DM.
-
-### Meetings Were the Actual Product
+## Meetings
 
 You point Kirrin at a meeting or let it infer from your connected calendar, a bot joins and records, and when the call ends you get minutes plus a list of who owes what.
 
-The version that ended up in the codebase runs on Attendee, a hosted meeting-bot service. It posts state changes to a webhook, and the webhook is the whole state machine: `joined_recording` flips the event to in progress, `fatal_error` marks it failed, and `ended` pulls the transcript, flattens it to `speaker: line`, and drops it on the `save-event` queue.
+The version that ended up in the codebase runs on [Attendee](https://attendee.dev/), a hosted meeting-bot service. It posts state changes to a webhook, at the end of the meeting we pull the transcript from attendee, and drop it on the `save-event` queue.
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-2 my-12 place-items-center">
   <Screenshot src={events} alt="events overview grouped by day, four complete and one still processing" />
   <Screenshot src={eventDetail} alt="event detail: generated minutes for a client kickoff, with open questions and action items collapsed underneath" />
 </div>
 
-The worker runs the transcript through a summarizer that returns structured JSON: a title, full minutes, open questions, and action items. Each action item carries a deadline and a `responsiblePersonQuery`, which is a short string of the person's name, role and relationship to the team, deliberately shaped to match the columns in the `people` table.
+The worker runs the transcript through a summarizer that returns structured JSON: a title, full minutes, open questions, and action items. Each action item carries a deadline and a `responsiblePersonQuery`, which is a short string of the person's name, role and relationship to the team.
 
-That query then gets embedded and run as a cosine similarity search against the people in the org, and the top match comes back attached to the action item with its similarity score. So the assignment is a suggestion with a confidence number next to it, not a guess the system pretends is a fact. You confirm or reassign in the UI.
-
-The people table is deliberately thin for the same reason. Name, email, role, relationship, and an embedding over those three text fields. Nothing else, because nothing else helps a transcript line like "Meher will audit the type scale" find the right row.
+That query is used to search against the people in the org, and the top match comes back attached to the action item with its similarity score. So the assignment is a suggestion with a confidence number next to it. You confirm or reassign an action item in the UI.
 
 <Screenshot src={people} alt="contacts table with name, email, role and relationship columns across teammates, contractors and clients" />
 
-### Follow-Ups
+## Follow-Ups
 
-Once an action item has an assignee and a deadline, another model call decides the chase cadence, and it returns a cron string. That cron goes straight into a BullMQ repeatable job, and a worker renders a React Email template and sends the reminder from `<host name> via Kirrin`, addressed to the assignee, referencing the meeting it came out of. The job deletes itself when the item is marked complete or disappears.
+A cron job for every action item was setup into a BullMQ job that sends the reminder from `<host name> via Kirrin`, addressed to the assignee, referencing the meeting it came out of. The job deletes itself when the item is marked complete or disappears.
 
 <Screenshot src={actions} alt="actions view grouping every action item across meetings into completed, overdue and pending, each with an assignee and a due date" />
 
-Everything extracted from every meeting, grouped by whether it is done, late, or coming, with a person attached to each line. One screen, and underneath it a cron job per row quietly emailing people.
+## The Meeting Bot
 
-### The Meet Bot
-
-Before Attendee, I to build the bot from scratch. I went and read [Vexa's](https://github.com/Vexa-ai/vexa) open source code to understand how a meeting bot actually works, and then spent six weeks building ours in Playwright.
-
-It is not a small thing. There's a join flow that fills the name field as `<bot name> (via Kirrin)` and clicks the mic and camera off with randomized delays between actions, a browser launched with a Chrome 129 user agent and a pile of flags to fake media devices and get past isolation, admission detection with a waiting-room timeout that distinguishes "still waiting" from "rejected by the admin", a removal monitor for kicks, a participant monitor that leaves on its own when the bot is the last one in the room, a graceful leave path guarded against double execution, and injected browser-side utilities that tap the audio graph and resample to 16kHz for streaming transcription.
+Before Attendee, I tried to build the bot from scratch. I went and read [Vexa's](https://github.com/Vexa-ai/vexa) open source code to understand how a meeting bot actually works, and then spent six weeks building ours in Playwright.
 
 What I learned doing it is that this problem has levels. Platform automation at this depth is somebody's entire company, and it should have been obvious from the outside that it was.
 
-So I dropped it and wired up Attendee instead, which took a couple of days. I spent the last six weeks I had at that company building the one thing I should have bought on day one, and I bought it the week I stopped. The bot is genuinely the most interesting code in the repo however it never recorded a single meeting for a single user.
+So I dropped it and wired up Attendee instead, which took a couple of days. I spent the last six weeks I had at the company building the one thing I should have bought on day one. The bot is genuinely the most interesting code in the repo however it never recorded a single meeting for a single user.
 
-### Treating It Like a Gym
+## Treating It Like a Gym
 
-I quit about a week after starting as an intern at [WLDD](https://wldd.in). I had taken that internship wanting to do something different, something off-track from what I had been doing, and a week in it was obvious that this was what I wanted my next few months to go into. So I made the call.
+I quit about a week after starting as an intern at [WLDD](https://wldd.in). I had taken that internship wanting to do something different from what I had been doing, and a week in it was obvious that this was what I wanted my next few months to go into. 
 
-It took a few months after that for the actual lesson to land, and it is this: I had been treating Kirrin like a gym instead of a field of play. A gym is where you go to get stronger, where the point is the difficulty of the thing you picked up. A field of play is where you go to win, and nobody watching cares how heavy the weights were.
+It took a few months after that for the actual lesson to land, and it is this: I had been treating Kirrin like a gym instead of a field of play. A gym is where you go to get stronger and a field is where you play to win.
 
-Every choice in that repo makes sense as training and almost none of it makes sense as a business:
-
-Five separate deployed apps plus two bots plus nine shared packages, for a product with zero users. Forty-nine migrations. A standalone auth server split out from the API. A dedicated webhooks service that I built, deployed, and then deleted two months later by folding it back into the API. An upgrade to Next.js 16, a revert to 15.5, a revert of the revert, and a re-upgrade, inside a single week. A refactor of integrations into a shared package architecture, for three providers, one of which was never finished. And six weeks on a Meet bot just to use a managed 3rd party service at the end.
+Every choice in that repo makes sense as training and almost none of it makes sense as a business. The codebase had five separate deployed apps plus two bots and nine shared packages, for a product with zero users. And six weeks on a Meeting bot just to use a managed 3rd party service at the end.
 
 None of that inherently felt bad engineering. It all felt like progress, and you can justify every single one in a standup. But none of it moved a user closer to using the thing. We never got past the waitlist page. I built the waitlist in a weekend in October, three months after the first commit, which tells you exactly how backwards the order was.
 
-The commitment problem had two halves and we each owned one. Mine was time. I never put in the hours, and the hours I did put in went to the parts that were fun to build rather than the parts that would have forced us to find out whether anyone wanted this. His was ideas. Every week there was a new perfect idea, and we would start building it before the previous one had been validated or used by a single person. A technical cofounder who overbuilds and a cofounder who rotates the target every week is a company that cannot learn anything, because nothing ever stays still long enough to be tested.
+The commitment problem had two halves: the hours I did put in went to the parts that were fun to build rather than the parts that would have forced us to find out whether anyone wanted this. For my cofounder, it was ideas, every week there was a new perfect idea, and we would start building it before the previous one had been validated or used by a single person. A technical cofounder who overbuilds and a cofounder who rotates the target every week is a company that cannot learn anything, because nothing ever stays still long enough to be tested.
 
-### We Were Early and It Didn't Matter
+## We Were Early and It Didn't Matter
 
-[Supermemory](https://supermemory.com) was our biggest inspiration at the time, especially their graph view of memories, which is still the thing I think about most from that whole period. Then Supermemory shipped Company Brain, and a few months ago Cerebras published a writeup on building their own company [knowledge system](https://x.com/cerebras/status/2077822555159945507). So the thesis was right. Organizational memory as a product is real, and in mid 2025 we were early to it, with a working ingestion and memory layer and a cofounder sitting on direct access to the densest MSME market in the country.
+[Supermemory](https://supermemory.com) was our biggest inspiration at the time, especially their graph view of memories. This year itself, Supermemory shipped Company Brain, and a few months after that Cerebras published a writeup on building their own company [knowledge system](https://x.com/cerebras/status/2077822555159945507). So the thesis was right. Organizational memory as a product is real, and in mid 2025 we were early to it, with a broken ingestion and memory layer.
 
-Being early counts for nothing on its own. If we had ignored the consumer-product instinct and the weekly perfect idea and just focused on getting one organization to build its knowledge base inside Kirrin, one real customer with real documents and real meetings, a year of iterating against that single account would have put us on the map and probably made good money doing it. The edge was there. We spent it on architecture.
+Being early counts for nothing on its own. If we had ignored the consumer-product instinct and the weekly perfect idea and just focused on getting one organization to build its knowledge base inside Kirrin, a year of iterating against that single account would have put us on the map and probably made good money doing it.

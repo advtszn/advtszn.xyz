@@ -22,19 +22,16 @@ import Screenshot from "~/components/common/screenshot.astro";
 import desktopHero from "~/assets/images/kimchipremium/desktop-hero.png";
 import ipadArticles from "~/assets/images/kimchipremium/ipad-articles.png";
 import iphoneNews from "~/assets/images/kimchipremium/iphone-news.png";
-
 import pipelineDiagram from "~/assets/images/kimchipremium/pipeline-diagram.png";
 
 
-
-## Deep Dive
-
+## The Language Barrier
 
 Most crypto content on the internet lives in English: Twitter threads, blog posts, protocol announcements, news desks. In a country like South Korea, where English isn't the first language for most, that leaves a whole trading community reading crypto news secondhand.
 
 By the time any of it reaches Korean traders, it's already been through a game of telephone. Someone screenshots a tweet, someone else paraphrases it in a group chat, and by the time it lands in a Telegram channel the nuance is gone. Kimchi Premium closes that gap, not by finding news nobody else has, but by getting the news that already exists to the people who couldn't read it yet.
 
-### How It Works
+## How It Works
 
 <Screenshot src={pipelineDiagram} alt="Kimchi Premium ETL pipeline architecture showing ingestion, processing, and delivery stages" />
 
@@ -42,24 +39,23 @@ The mechanics are simple. Every 15 minutes, the system scrapes headlines from fi
 
 The end-to-end latency from an article being published to it appearing translated in the Telegram channel is under a few minutes. Fast enough that Korean traders are reading the same news as English-speaking traders, not a translated digest hours later.
 
-### The Scraper
+## The Scraper
 
-A Python ETL script runs on a cron schedule via GitHub Actions. Each source is driven through Playwright in its own headless Chromium session, results are normalized into a common format, and the batch is deduplicated against a per-source watermark: Redis holds the newest headline from the previous run, and the current run locates that headline in the fetched list and slices off everything above it. What's left is forwarded as a single payload to a webhook endpoint.
+A Python ETL script runs on a cron schedule via GitHub Actions. Each source scraped through Playwright in its own headless Chromium session, results are normalized into a common format, and the batch is deduplicated against a per-source watermark: Redis holds the newest headline from the previous run, and the current run locates that headline in the fetched list and slices off everything above it. What's left is forwarded as a single payload to a webhook endpoint.
 
-GitHub Actions was a deliberate choice over a self-hosted cron. No server to maintain, no uptime to worry about, and the 15-minute interval fits comfortably within free-tier limits.
+GitHub Actions was a deliberate choice over a self-hosted cron. No server to maintain, no uptime to worry about and the 15-minute interval fit comfortably within free-tier limits.
 
-### Job Processing
+## Job Processing
 
-The webhook endpoint is a Hono server that receives the batched headlines and fans them out, dispatching one BullMQ job per headline. Each job hits Gemini API to generate a summary of the original article, then runs a second pass to translate both the headline and summary into Korean.
+The webhook endpoint is a Hono server that received the batched headlines and fans them out, dispatching one BullMQ job per headline. Each job hits Gemini API to generate a summary of the original article, then runs a second pass to translate both the headline and summary into Korean.
 
-BullMQ handles retry logic and concurrency control. If an LLM call fails or rate-limits, the job gets retried automatically rather than dropping the headline silently. This matters when a single cycle carries anywhere from a couple of headlines to thirty-odd when the news flow spikes, and one flaky API response shouldn't mean a missed story.
+BullMQ handles retry logic and concurrency control. If an LLM call fails or rate-limits, the job gets retried automatically. This matters when a single cycle carries anywhere from a couple of headlines to thirty-ish when the news flow spikes.
 
-### Distribution
+## Distribution
 
 The processed content is then pushed to telegram channel (korean only) and sanity cms (both english and korean).
 
-The Telegram channel is the real-time alpha channel, optimized for speed. Traders get a notification, scan the headline, and decide whether to act. The public website is built with Astro and pulls content from Sanity CMS. It serves both English and Korean versions of every page and doubles as an SEO play. Telegram handles the real-time push while the website invites organic traffic.
-
+The Telegram channel is the real-time alpha channel, optimized for speed. Traders get a notification, scan the headline, and decide whether to act. The public website is built with Astro and pulls content from Sanity CMS. It serves both English and Korean versions of every page and doubles as an SEO play. 
 
 ## How I'd Scale This
 
