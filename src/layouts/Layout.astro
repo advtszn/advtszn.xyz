@@ -89,27 +89,21 @@ const shareImage = absoluteUrl(image, Astro.site);
     <meta property="og:url" content={canonical} />
     <meta property="og:site_name" content={SITE.name} />
     <meta property="og:locale" content="en_US" />
-    {
-      type === "article" && publishedTime && (
-        <meta
-          property="article:published_time"
-          content={publishedTime.toISOString()}
-        />
-      )
-    }
-    {
-      type === "article" && (modifiedTime ?? publishedTime) && (
-        <meta
-          property="article:modified_time"
-          content={(modifiedTime ?? publishedTime)!.toISOString()}
-        />
-      )
-    }
-    {
-      type === "article" && (
-        <meta property="article:author" content={SITE.author} />
-      )
-    }
+    {type === "article" && publishedTime && (
+      <meta
+        property="article:published_time"
+        content={publishedTime.toISOString()}
+      />
+    )}
+    {type === "article" && (modifiedTime ?? publishedTime) && (
+      <meta
+        property="article:modified_time"
+        content={(modifiedTime ?? publishedTime)!.toISOString()}
+      />
+    )}
+    {type === "article" && (
+      <meta property="article:author" content={SITE.author} />
+    )}
 
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -128,7 +122,16 @@ const shareImage = absoluteUrl(image, Astro.site);
       href="/sitemap.xml"
     />
 
-    {jsonLd && <script type="application/ld+json" set:html={jsonLd} is:inline />}
+    {jsonLd && (
+      <script type="application/ld+json" set:html={jsonLd} is:inline />
+    )}
+
+    <!-- tracking -->
+    <script
+      src="https://api.tracium.dev/track.js"
+      data-project-id="cb1b61afdcbf5a52"
+      defer
+    ></script>
 
     <ClientRouter />
   </head>
