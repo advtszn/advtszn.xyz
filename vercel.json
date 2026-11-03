@@ -2,5 +2,15 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "astro",
   "installCommand": "bun install",
-  "buildCommand": "bun run build"
+  "buildCommand": "bun run build",
+  "rewrites": [
+    {
+      "source": "/_a/s.js",
+      "destination": "https://api.tracium.dev/track.js"
+    },
+    {
+      "source": "/_a/e/:path*",
+      "destination": "https://api.tracium.dev/v1/track/:path*"
+    }
+  ]
 }
