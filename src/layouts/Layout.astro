@@ -126,10 +126,11 @@ const shareImage = absoluteUrl(image, Astro.site);
       <script type="application/ld+json" set:html={jsonLd} is:inline />
     )}
 
-    <!-- tracking -->
+    <!-- tracking: proxied first-party via vercel.json rewrites (/_a/*) -->
     <script
-      src="https://api.tracium.dev/track.js"
+      src="/_a/s.js"
       data-project-id="cb1b61afdcbf5a52"
+      data-api-url="/_a/e"
       defer
     ></script>
 
