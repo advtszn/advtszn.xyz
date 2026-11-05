@@ -8,7 +8,7 @@ export const SITE = {
   author: "advait",
   handle: "@advtszn",
   email: "hey@advtszn.xyz",
-  jobTitle: "multi-disciplinary engineer",
+  jobTitle: "multidisciplinary engineer",
   sameAs: ["https://x.com/advtszn", "https://github.com/advtszn", "https://cal.com/advtszn"],
 } as const;
 
