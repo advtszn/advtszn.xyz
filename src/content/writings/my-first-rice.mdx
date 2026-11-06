@@ -1,0 +1,123 @@
+---
+title: my first rice
+description: vesper colours everywhere, rift for tiling, a sketchybar that dodges the notch and dotfiles that refuse to leak secrets. how i riced macos with zero linux background.
+date: 2026-11-06
+---
+
+import { Image } from "astro:assets";
+import desktop from "~/assets/images/rice/desktop.jpg";
+import tiling from "~/assets/images/rice/terminal.jpg";
+import editor from "~/assets/images/rice/editor.jpg";
+
+
+
+i've lurked on r/unixporn for a while but never riced anything myself. no linux background, i used raycast without really using its hotkeys, and tmux only because tmuxinator let me fire a dev server, claude and a free tab in one ghostty window. i'd even tried sketchybar once and gave up because i didn't know how to configure it.
+
+so the goal this time was simple: something minimal, one colour scheme everywhere, and every config backed up so i never have to do this twice.
+
+<Image
+  src={desktop}
+  alt="macos desktop with a hillside wallpaper, sketchybar islands either side of the notch and a ghostty window running fastfetch"
+  data-lightbox
+/>
+
+## the colours
+
+everything is [vesper](https://github.com/raunofreiberg/vesper). ghostty, starship, lf, lsd, tmux, fastfetch, zed, even slack has a custom theme.
+
+## window manager
+
+i started with aerospace. it's great until you use native tabs: aerospace treats every ghostty tab as a separate window, so `cmd + t` would tile a new "window" into half my screen. it's a [known issue](https://github.com/nikitabobko/AeroSpace/issues/68) and it's not getting fixed any time soon.
+
+so i moved to [rift](https://github.com/acsandmann/rift). it's young, but it handles native tabs properly, does bsp tiling, has its own virtual workspaces and lets me swipe between them with three fingers.
+
+<Image
+  src={tiling}
+  alt="three tiled ghostty windows running cmatrix, lf and btop"
+  data-lightbox
+/>
+
+bsp means every new window splits the focused one in half. it took me a day to stop fighting it, now i can't go back:
+
+```toml
+# ~/.config/rift/config.toml
+[settings.layout]
+mode = "bsp"
+window_insertion_point = "next_to_selection"
+
+[settings.layout.gaps.outer]
+top = 8
+left = 8
+bottom = 8
+right = 8
+
+[settings.layout.gaps.inner]
+horizontal = 12
+vertical = 12
+```
+
+all window keys live on `⌥`. `⌥ hjkl` moves focus, the same keys i already use for tmux panes. `⌥ 1–5` switches workspaces, and the first three are pinned: web, code (ghostty + zed) and chat (slack + music). discord floats at full size and never tiles.
+
+```toml
+"Alt + H" = { move_focus = "left" }
+"Alt + J" = { move_focus = "down" }
+"Alt + K" = { move_focus = "up" }
+"Alt + L" = { move_focus = "right" }
+"Alt + F" = "toggle_fullscreen_within_gaps"
+"Alt + Slash" = "toggle_orientation"
+```
+
+## the bar
+
+the macbook has a notch, so the bar is two floating islands, one on each side of it. left has the workspaces (with icons of the apps on each) and the focused app, right has a network graph, a cpu graph, battery and the clock.
+
+```bash
+# ~/.config/sketchybar/sketchybarrc
+sketchybar --bar position=top height=38 y_offset=4 margin=8 \
+                 color=0x00000000 topmost=off sticky=on notch_width=200
+```
+
+## borders
+
+[jankyborders](https://github.com/FelixKratz/JankyBorders) draws a border around the focused window. i went through peach, mint and grey before landing on vesper's grey for focus and a dim grey for everything else:
+
+```bash
+# ~/.config/borders/bordersrc
+options=(
+  style=round
+  width=4.0
+  hidpi=on
+  active_color=0xffa0a0a0
+  inactive_color=0xff303030
+)
+```
+
+## terminal and editor
+
+ghostty with the vesper theme, a bit of blur and monaspace neon with all its ligatures turned on. fish + starship for the shell, lf for files, lsd instead of `ls`, btop for the graphs.
+
+```ini
+# ghostty
+font-family = Monaspace Neon Var
+font-size = 16
+font-feature = "calt, ss01, ss02, ss03, ss04, ss05, ss06, ss07, ss08, ss09, liga"
+background-opacity = 0.75
+background-blur = true
+theme = Vesper
+```
+
+zed is in vim mode with most of the ui stripped out.
+
+<Image
+  src={editor}
+  alt="zed in vim mode tiled beside two stacked obsidian windows"
+  data-lightbox
+/>
+
+## the launcher
+
+raycast stays as the app launcher, with caps lock as a hyper key. i tried `⌥` as hyper so it'd feel more like skhd, but then `⌥ ⌫` and `⌥ ←` stopped deleting and jumping by word. caps lock was going unused anyway.
+
+## that's it
+
+the dotfiles are at [github.com/advtszn/dotfiles](https://github.com/advtszn/dotfiles), managed by [chezmoi](https://www.chezmoi.io).

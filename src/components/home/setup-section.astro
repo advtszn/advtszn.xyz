@@ -1,0 +1,99 @@
+---
+import { Image } from "astro:assets";
+import { ArrowUpRight } from "lucide-astro";
+import desktop from "~/assets/images/rice/desktop.jpg";
+import editor from "~/assets/images/rice/editor.jpg";
+import launcher from "~/assets/images/rice/launcher.jpg";
+import terminal from "~/assets/images/rice/terminal.jpg";
+import Link from "../common/link.astro";
+
+const shots = [
+  {
+    src: desktop,
+    alt: "macos desktop with a hillside wallpaper, sketchybar islands either side of the notch and a ghostty window running fastfetch",
+  },
+  {
+    src: terminal,
+    alt: "three tiled ghostty windows running cmatrix, lf and btop",
+  },
+  {
+    src: editor,
+    alt: "zed in vim mode tiled beside two stacked obsidian windows",
+  },
+  {
+    src: launcher,
+    alt: "raycast open over the wallpaper",
+  },
+];
+
+const stack = [
+  { label: "wm", value: "rift", href: "https://github.com/acsandmann/rift" },
+  {
+    label: "bar",
+    value: "sketchybar",
+    href: "https://github.com/FelixKratz/SketchyBar",
+  },
+  {
+    label: "borders",
+    value: "jankyborders",
+    href: "https://github.com/FelixKratz/JankyBorders",
+  },
+  { label: "term", value: "ghostty", href: "https://ghostty.org" },
+  { label: "shell", value: "fish + starship", href: "https://fishshell.com" },
+  { label: "editor", value: "zed", href: "https://zed.dev" },
+  {
+    label: "font",
+    value: "monaspace neon",
+    href: "https://monaspace.githubnext.com",
+  },
+  { label: "launcher", value: "raycast", href: "https://raycast.com" },
+];
+---
+
+<section class="space-y-6">
+  <div class="max-w-xl mx-auto px-4 lg:px-0">
+    <div class="flex items-end justify-between border-b pb-2">
+      <h2 class="text-2xl text-foreground font-medium">setup</h2>
+      <a
+        href="https://github.com/advtszn/dotfiles"
+        target="_blank"
+        class="inline-flex items-center gap-x-1 text-sm font-medium hover:text-foreground transition-colors group"
+      >
+        dotfiles
+        <ArrowUpRight class="size-3 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+      </a>
+    </div>
+  </div>
+
+  <div class="lg:px-24 px-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-x-2">
+      {shots.map(({ src, alt }) => (
+        <Image
+          src={src}
+          alt={alt}
+          widths={[800, 1600]}
+          sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 100vw"
+          class="aspect-[3420/2224] w-full rounded object-cover cursor-zoom-in pointer-fine:grayscale pointer-fine:hover:grayscale-0 transition-all duration-500"
+          data-lightbox
+          loading="lazy"
+          decoding="async"
+        />
+      ))}
+    </div>
+  </div>
+
+  <div class="max-w-xl mx-auto px-4 lg:px-0">
+    <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+      {stack.map(({ label, value, href }) => (
+        <div class="flex items-baseline justify-between gap-x-3 border-b border-dashed pb-2">
+          <dt class="text-muted-foreground">{label}</dt>
+          <dd>
+            <Link href={href} target="_blank">
+              {value}
+            </Link>
+          </dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</section>
