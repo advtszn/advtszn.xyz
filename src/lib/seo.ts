@@ -18,7 +18,7 @@ export const SITE = {
  * agree on the trailing slash or they advertise two URLs per page.
  */
 export const absoluteUrl = (path: string, site: URL | undefined): string => {
-  const base = site ?? new URL("https://advtszn.xyz");
+  const base = site ?? new URL("https://www.advtszn.xyz");
   const clean = path.split(/[?#]/)[0];
   const withLeading = clean.startsWith("/") ? clean : `/${clean}`;
 
