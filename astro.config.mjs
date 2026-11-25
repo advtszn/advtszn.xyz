@@ -9,7 +9,7 @@ export default defineConfig({
   site: "https://www.advtszn.xyz",
   output: "static",
   markdown: {
-    shikiConfig: { theme: "vesper", wrap: false },
+    shikiConfig: { theme: "github-light", wrap: false },
   },
   prefetch: {
     prefetchAll: false,
