@@ -15,7 +15,6 @@
   "dependencies": {
     "@astrojs/mdx": "8.0.2",
     "@tailwindcss/vite": "^4.1.13",
-    "ascii.rest": "^0.4.0",
     "astro": "7.3.5",
     "clsx": "^2.1.1",
     "lucide-astro": "^0.556.0",

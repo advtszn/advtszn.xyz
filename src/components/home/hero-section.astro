@@ -1,5 +1,4 @@
 ---
-import Ascii from "ascii.rest/astro";
 import Link from "../common/link.astro";
 
 type Props = {
@@ -8,15 +7,6 @@ type Props = {
 
 const { age } = Astro.props;
 
-// Rendered at build time so the line has its final width before the script
-// runs; the clock corrects it to the real hour on first tick.
-const initialTime = new Intl.DateTimeFormat("en-GB", {
-  timeZone: "Asia/Kolkata",
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-  hourCycle: "h23",
-}).format(new Date());
 ---
 
 <main class="space-y-6 max-w-xl mx-auto px-5.5 lg:px-0">
@@ -67,40 +57,3 @@ const initialTime = new Intl.DateTimeFormat("en-GB", {
     </p>
   </div>
 </main>
-
-<script>
-  const fmt = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Kolkata",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hourCycle: "h23",
-  });
-
-  let timer: number | undefined;
-
-  function stopClock() {
-    if (timer !== undefined) clearTimeout(timer);
-    timer = undefined;
-  }
-
-  function startClock() {
-    stopClock();
-
-    const el = document.querySelector<HTMLElement>("[data-clock]");
-    if (!el) return;
-
-    const tick = () => {
-      el.textContent = fmt.format(new Date());
-      // Re-aim at the next second boundary each time, so it never drifts and
-      // flips over at the same moment a wall clock does.
-      timer = window.setTimeout(tick, 1000 - (Date.now() % 1000));
-    };
-
-    tick();
-  }
-
-  startClock();
-  document.addEventListener("astro:page-load", startClock);
-  document.addEventListener("astro:before-swap", stopClock);
-</script>

@@ -231,6 +231,12 @@
   @apply text-foreground/90 mt-10 text-lg font-medium md:text-xl;
 }
 
+.mdx h1,
+.mdx h2,
+.mdx h3 {
+  @apply font-sans;
+}
+
 .mdx ul {
   @apply list-disc space-y-2 pl-6;
 }
@@ -269,33 +275,9 @@
   @apply mx-auto rounded;
 }
 
-/* Justified. At this measure it holds ~1.12x word-space stretch, close to
-   ragged's 1.12-1.34x. Hyphenation comes from the shared justified-text rule
-   below; code is opted out there so identifiers like `createdAt` never break
-   into `create-dAt`. */
 .mdx p {
-  @apply text-muted-foreground hyphens-auto [-webkit-hyphens:_auto] [hyphenate-limit-chars:_8_4_4] md:text-lg;
+  @apply text-muted-foreground md:text-lg;
   text-wrap: pretty;
-}
-
-/* Never hyphenate code, URLs-in-code or keyboard keys inside justified text. */
-.text-justify :is(code, kbd, samp, pre),
-.mdx p :is(code, kbd, samp, pre) {
-  -webkit-hyphens: manual;
-  hyphens: manual;
-}
-
-/* Ragged below sm, justified above. Justification needs enough words per line
-   to spread the slack; measured word-space stretch on one paragraph:
-     360px -> 3.6x   390px -> 3.0x   430px -> 3.5x   540px -> 3.0x
-     640px -> 2.0x   768px -> 2.0x   1024px -> 2.4x  1280px -> 2.0x
-   It settles at 640px, so that's the line. */
-@media (width < 40rem) {
-  .mdx p {
-    @apply text-left;
-    -webkit-hyphens: manual;
-    hyphens: manual;
-  }
 }
 
 /* Figure number, Linear-style: small mono caps ahead of the caption. Not
