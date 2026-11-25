@@ -73,8 +73,6 @@
 }
 
 :root {
-  /* Light palette, after trickastley.com: pure white page, pure black for
-     emphasis, #6b6b6b body text, #b3b3b3 tertiary, #e2e2e2 hairlines. */
   --radius: 0.625rem;
   color-scheme: light;
   --background: oklch(1 0 0); /* #fff */

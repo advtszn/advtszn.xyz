@@ -42,7 +42,9 @@ const shareImage = absoluteUrl(image, Astro.site);
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link
       rel="preload"
       href="/fonts/host-grotesk/HostGrotesk-normal.woff2"
@@ -69,9 +71,6 @@ const shareImage = absoluteUrl(image, Astro.site);
 
     <!-- title -->
     <title>{title}</title>
-
-    <!-- favicon -->
-    <link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml" />
 
     <!-- open graph -->
     <meta property="og:type" content={type} />
