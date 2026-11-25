@@ -3,7 +3,6 @@ import Layout from "../layouts/Layout.astro";
 import HeroSection from "~/components/home/hero-section.astro";
 import WorksSection from "~/components/home/works-section.astro";
 import WritingsSection from "~/components/home/writings-section.astro";
-import SetupSection from "~/components/home/setup-section.astro";
 import SocialsSection from "~/components/home/socials-section.astro";
 import { graph, personSchema, serializeJsonLd, websiteSchema } from "~/lib/seo";
 
@@ -34,7 +33,7 @@ const jsonLd = serializeJsonLd(
 <Layout
   jsonLd={jsonLd}
   content={{
-    title: "home | advtszn",
+    title: "advait.",
     description: `${age} year old multi-disciplinary engineer, obsessed with scale, speed and aesthetics`,
   }}
 >
@@ -42,7 +41,6 @@ const jsonLd = serializeJsonLd(
     <HeroSection age={age} />
     <WorksSection />
     <WritingsSection />
-    <!-- <SetupSection /> -->
     <SocialsSection />
   </div>
 </Layout>

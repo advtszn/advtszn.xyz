@@ -4,5 +4,16 @@
   "installCommand": "bun install",
   "buildCommand": "bun run build",
   "trailingSlash": true,
-  "redirects": [{ "source": "/socials", "destination": "/#socials", "permanent": true }]
+  "redirects": [
+    {
+      "source": "/socials",
+      "destination": "/#socials",
+      "permanent": true
+    },
+    {
+      "source": "/writings/my-first-rice",
+      "destination": "/writings/ricing-my-mac/",
+      "permanent": true
+    }
+  ]
 }
