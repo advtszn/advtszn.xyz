@@ -2,7 +2,7 @@
 import Container from "~/components/common/container.astro";
 import Layout from "~/layouts/Layout.astro";
 import { getCollection, render } from "astro:content";
-import { ArrowLeft } from "lucide-astro";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-astro";
 import {
   absoluteUrl,
   breadcrumbSchema,
@@ -12,11 +12,15 @@ import {
 } from "~/lib/seo";
 
 export async function getStaticPaths() {
-  const writings = await getCollection("writings");
+  // Same order as the writings index: newest first. "Previous" is the newer
+  // post, "Next" the older one, so Next keeps reading down the list.
+  const writings = (await getCollection("writings")).sort(
+    (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+  );
 
-  return writings.map((writing) => ({
+  return writings.map((writing, i) => ({
     params: { slug: writing.id },
-    props: { writing },
+    props: { writing, prev: writings[i - 1], next: writings[i + 1] },
   }));
 }
 
@@ -27,7 +31,7 @@ const formatDate = (date: Date) =>
     year: "numeric",
   });
 
-const { writing } = Astro.props;
+const { writing, prev, next } = Astro.props;
 const { Content } = await render(writing);
 
 const jsonLd = serializeJsonLd(
@@ -61,7 +65,7 @@ const jsonLd = serializeJsonLd(
 <Layout
   jsonLd={jsonLd}
   content={{
-    title: `${writing.data.title} | advtszn`,
+    title: `${writing.data.title} | advait.`,
     description: writing.data.description,
     type: "article",
     publishedTime: writing.data.date,
@@ -80,7 +84,7 @@ const jsonLd = serializeJsonLd(
             /> back to writings</a
           >
           <div
-            class="mb-12 flex flex-col gap-y-4 lg:flex-row lg:justify-between lg:items-baseline lg:gap-y-0"
+            class="mb-12 flex flex-col gap-y-4"
           >
             <h1 class="text-foreground text-3xl font-medium">
               {writing.data.title}
@@ -92,9 +96,50 @@ const jsonLd = serializeJsonLd(
             </p>
           </div>
         </div>
-        <article class="mdx mb-20 space-y-6">
+        <article class="mdx mb-16 space-y-6">
           <Content />
         </article>
+        {(prev || next) && (
+          <nav
+            aria-label="More writings"
+            class="border-border mx-auto mb-20 grid w-full max-w-4xl grid-cols-2 gap-6 border-t pt-8"
+          >
+            {prev && (
+              <a
+                href={`/writings/${prev.id}/`}
+                class="group col-start-1 flex flex-col items-start gap-y-2"
+              >
+                <span class="text-muted-foreground flex items-center gap-x-1 text-sm">
+                  <ChevronLeft
+                    size={16}
+                    class="transition-transform group-hover:-translate-x-0.5"
+                  />
+                  Previous
+                </span>
+                <span class="text-foreground/80 group-hover:text-foreground font-medium transition-colors">
+                  {prev.data.title}
+                </span>
+              </a>
+            )}
+            {next && (
+              <a
+                href={`/writings/${next.id}/`}
+                class="group col-start-2 flex flex-col items-end gap-y-2 text-right"
+              >
+                <span class="text-muted-foreground flex items-center gap-x-1 text-sm">
+                  Next
+                  <ChevronRight
+                    size={16}
+                    class="transition-transform group-hover:translate-x-0.5"
+                  />
+                </span>
+                <span class="text-foreground/80 group-hover:text-foreground font-medium transition-colors">
+                  {next.data.title}
+                </span>
+              </a>
+            )}
+          </nav>
+        )}
       </div>
     </Container>
   </main>
