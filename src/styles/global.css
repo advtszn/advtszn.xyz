@@ -261,7 +261,7 @@
 /* Mirrors ~/components/common/link.astro so prose links read the same as the
    ones hand-placed in .astro pages. */
 .mdx a {
-  @apply text-foreground decoration-muted-foreground hover:decoration-foreground font-medium underline underline-offset-3 transition-colors;
+  @apply text-foreground decoration-muted-foreground hover:decoration-foreground font-medium underline underline-offset-2 transition-colors;
 }
 
 /* Images */
@@ -274,7 +274,7 @@
    below; code is opted out there so identifiers like `createdAt` never break
    into `create-dAt`. */
 .mdx p {
-  @apply text-muted-foreground text-justify hyphens-auto [-webkit-hyphens:_auto] [hyphenate-limit-chars:_8_4_4] md:text-lg;
+  @apply text-muted-foreground hyphens-auto [-webkit-hyphens:_auto] [hyphenate-limit-chars:_8_4_4] md:text-lg;
   text-wrap: pretty;
 }
 
@@ -329,7 +329,7 @@
 }
 
 .mdx th {
-  @apply text-foreground/60 pr-7 pb-2.5 text-left text-[0.8em] font-medium tracking-wider uppercase whitespace-nowrap;
+  @apply text-foreground/60 pr-7 pb-2.5 text-left text-[0.8em] font-medium uppercase whitespace-nowrap;
 }
 
 .mdx td {
