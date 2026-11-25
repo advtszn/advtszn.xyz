@@ -298,6 +298,12 @@
   }
 }
 
+/* Figure number, Linear-style: small mono caps ahead of the caption. Not
+   italic, so it reads as a label rather than part of the sentence. */
+.mdx figcaption .fig-num {
+  @apply text-foreground/60 mr-2 font-mono text-[0.85em] tracking-wider uppercase not-italic;
+}
+
 /* Tables */
 .mdx figure:has(table) {
   @apply my-10 flex flex-col items-center gap-3;
