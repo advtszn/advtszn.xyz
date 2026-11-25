@@ -15,9 +15,6 @@ overview: Creator Daddy is an agentic chatbot that lets brands search for conten
 contribution: Built the whole thing as a weekend experiment at wldd, from the creator scraping and enrichment pipeline to the vector retrieval system and the chat interface on top.
 ---
 
-import Screenshot from "~/components/common/screenshot.astro";
-import multiEmbeddings from "~/assets/images/creator-daddy/multi-embeddings.png";
-import pipelineLifecycle from "~/assets/images/creator-daddy/pipeline-lifecycle.png";
 
 <figure class="my-12 flex flex-col items-center gap-2">
 <div class="w-full max-w-4xl">
@@ -82,9 +79,7 @@ The obvious next step, and one I'd already planned, is hybrid retrieval: combini
 
 Fifteen hand-picked creators was enough to prove the retrieval quality, but the real version needs the enrichment pipeline to run continuously: discovering creators, refreshing their top content as it changes, and re-summarizing when a creator pivots niches. That turns a one-off scraping script into a proper ingestion system with scheduling, deduplication, and re-embedding logic, which is exactly the shape of problem the weekend version was designed to de-risk.
 
-The design doc already sketches what that production system looks like: seed a creator, enumerate similar creators through Instagram's discovery graph, and fan each one out to per-facet queues where video analysis workers generate the niche and style summaries and an audience worker analyzes comments — with embeddings regenerated every 30-90 days since a creator's positioning drifts over time.
-
-<Screenshot src={pipelineLifecycle} alt="Pipeline lifecycle from the design doc: seed creator feeding similar-creator discovery, per-facet embedding queues with video analysis and audience workers, storing into MongoDB and a vector database" />
+The design doc already lays out what that production system looks like: seed a creator, enumerate similar creators through Instagram's discovery graph, and fan each one out to per-facet queues where video analysis workers generate the niche and style summaries and an audience worker analyzes comments — with embeddings regenerated every 30-90 days since a creator's positioning drifts over time.
 
 ### The Extra Sauce
 
