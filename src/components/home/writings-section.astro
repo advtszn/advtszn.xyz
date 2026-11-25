@@ -10,7 +10,7 @@ const writings = (await getCollection("writings")).sort(
 ---
 
 <section class="space-y-6">
-  <div class="max-w-xl mx-auto px-4 lg:px-0">
+  <div class="max-w-xl mx-auto px-5.5 lg:px-0">
     <div class="flex items-end justify-between border-b pb-2">
       <h2 id="writings" class="text-2xl text-foreground font-medium scroll-mt-16">writings</h2>
       <a
@@ -23,7 +23,7 @@ const writings = (await getCollection("writings")).sort(
     </div>
   </div>
 
-  <div class="max-w-xl mx-auto px-4 lg:px-0">
+  <div class="max-w-xl mx-auto px-5.5 lg:px-0">
     <ol class="space-y-2.5">
       {
         writings.map(({ id, data: { title } }) => (

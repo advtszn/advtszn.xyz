@@ -51,7 +51,7 @@ const stack = [
 ---
 
 <section class="space-y-6">
-  <div class="max-w-xl mx-auto px-4 lg:px-0">
+  <div class="max-w-xl mx-auto px-5.5 lg:px-0">
     <div class="flex items-end justify-between border-b pb-2">
       <h2 id="setup" class="text-2xl text-foreground font-medium scroll-mt-16">setup</h2>
       <a
@@ -66,14 +66,14 @@ const stack = [
   </div>
 
   <div class="lg:px-24 px-4">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-x-2">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-x-2">
       {shots.map(({ src, alt }) => (
         <Image
           src={src}
           alt={alt}
           widths={[800, 1600]}
           sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 100vw"
-          class="aspect-[3420/2224] w-full rounded object-cover cursor-zoom-in pointer-fine:grayscale pointer-fine:hover:grayscale-0 transition-all duration-500"
+          class="aspect-[3420/2224] w-full rounded object-cover cursor-zoom-in transition-all duration-500"
           data-lightbox
           loading="lazy"
           decoding="async"
@@ -82,7 +82,7 @@ const stack = [
     </div>
   </div>
 
-  <div class="max-w-xl mx-auto px-4 lg:px-0">
+  <div class="max-w-xl mx-auto px-5.5 lg:px-0">
     <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
       {stack.map(({ label, value, href }) => (
         <div class="flex items-baseline justify-between gap-x-3 border-b border-dashed pb-2">
