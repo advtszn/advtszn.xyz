@@ -70,7 +70,7 @@ const jsonLd = serializeJsonLd(
 <Layout
   jsonLd={jsonLd}
   content={{
-    title: `${work.data.title} | advtszn`,
+    title: `${work.data.title} | advait.`,
     description: work.data.overview,
     type: "article",
     image: work.data.thumbnail,
@@ -89,7 +89,7 @@ const jsonLd = serializeJsonLd(
             class="mr-1.5 transition-transform group-hover:-translate-x-0.5"
           /> back to works
         </a>
-        <div class="flex items-center justify-between mb-12">
+        <div class="mb-12 flex flex-col gap-y-4 md:flex-row md:items-center md:justify-between md:gap-y-0">
           <h1 class="text-3xl font-medium text-foreground">
             {work.data.title}
           </h1>
@@ -117,7 +117,7 @@ const jsonLd = serializeJsonLd(
                       <a
                         href={work.data.url}
                         target="_blank"
-                        class="underline underline-offset-3 decoration-muted-foreground hover:decoration-foreground hover:text-foreground transition-colors"
+                        class="underline underline-offset-2 decoration-muted-foreground hover:decoration-foreground hover:text-foreground transition-colors"
                       >
                         {work.data.url
                           .replace(/^https?:\/\//, "")

@@ -1,30 +1,20 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Self-hosted Overused Grotesk (variable) */
+/* Self-hosted Host Grotesk (variable) — the whole site: UI, headings and
+   prose. Ships a real italic. */
 @font-face {
-  font-family: "Overused Grotesk";
-  src: url("/fonts/overused-grotesk/OverusedGroteskRoman-VF.woff2")
-    format("woff2");
-  font-weight: 300 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Self-hosted Public Sans (variable) — long-form reading only. Ships a real
-   italic, which Overused Grotesk doesn't. Swap both srcs to A/B another face. */
-@font-face {
-  font-family: "Public Sans";
-  src: url("/fonts/public-sans/PublicSans-Variable.woff2") format("woff2");
-  font-weight: 100 900;
+  font-family: "Host Grotesk";
+  src: url("/fonts/host-grotesk/HostGrotesk-normal.woff2") format("woff2");
+  font-weight: 300 800;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Public Sans";
-  src: url("/fonts/public-sans/PublicSans-VariableItalic.woff2") format("woff2");
-  font-weight: 100 900;
+  font-family: "Host Grotesk";
+  src: url("/fonts/host-grotesk/HostGrotesk-italic.woff2") format("woff2");
+  font-weight: 300 800;
   font-style: italic;
   font-display: swap;
 }
@@ -41,10 +31,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  /* Three fonts, three jobs: Overused Grotesk is the site's voice (UI +
-     every heading), Public Sans carries running prose, Geist Mono is code. */
-  --font-sans: "Overused Grotesk", sans-serif;
-  --font-prose: "Public Sans", sans-serif;
+  /* Host Grotesk everywhere; Geist Mono only for code, which needs columns. */
+  --font-sans: "Host Grotesk", sans-serif;
+  --font-prose: "Host Grotesk", sans-serif;
   --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -85,37 +74,38 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  color-scheme: light;
+  --background: oklch(1 0 0); /* #fff */
+  --foreground: oklch(0 0 0); /* #000 */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0 0 0);
+  --primary: oklch(0 0 0);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.961 0 0); /* #f2f2f2 */
+  --secondary-foreground: oklch(0 0 0);
+  --muted: oklch(0.961 0 0);
+  --muted-foreground: oklch(0.528 0 0); /* #6b6b6b */
+  --accent: oklch(0.961 0 0);
+  --accent-foreground: oklch(0 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.913 0 0); /* #e2e2e2 */
+  --input: oklch(0.773 0 0); /* #b5b5b5 */
+  --ring: oklch(0.767 0 0); /* #b3b3b3 */
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0 0 0);
+  --sidebar-primary: oklch(0 0 0);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.961 0 0);
+  --sidebar-accent-foreground: oklch(0 0 0);
+  --sidebar-border: oklch(0.913 0 0);
+  --sidebar-ring: oklch(0.767 0 0);
 }
 
 .marquee-container {
@@ -239,6 +229,12 @@
   @apply text-foreground/90 mt-10 text-lg font-medium md:text-xl;
 }
 
+.mdx h1,
+.mdx h2,
+.mdx h3 {
+  @apply font-sans;
+}
+
 .mdx ul {
   @apply list-disc space-y-2 pl-6;
 }
@@ -269,7 +265,7 @@
 /* Mirrors ~/components/common/link.astro so prose links read the same as the
    ones hand-placed in .astro pages. */
 .mdx a {
-  @apply text-foreground decoration-muted-foreground hover:decoration-foreground font-medium underline underline-offset-3 transition-colors;
+  @apply text-foreground decoration-muted-foreground hover:decoration-foreground font-medium underline underline-offset-2 transition-colors;
 }
 
 /* Images */
@@ -277,33 +273,15 @@
   @apply mx-auto rounded;
 }
 
-/* Justified. At this measure it holds ~1.12x word-space stretch, close to
-   ragged's 1.12-1.34x. Hyphenation comes from the shared justified-text rule
-   below; code is opted out there so identifiers like `createdAt` never break
-   into `create-dAt`. */
 .mdx p {
-  @apply text-muted-foreground text-justify hyphens-auto [-webkit-hyphens:_auto] [hyphenate-limit-chars:_8_4_4] md:text-lg;
+  @apply text-muted-foreground md:text-lg;
   text-wrap: pretty;
 }
 
-/* Never hyphenate code, URLs-in-code or keyboard keys inside justified text. */
-.text-justify :is(code, kbd, samp, pre),
-.mdx p :is(code, kbd, samp, pre) {
-  -webkit-hyphens: manual;
-  hyphens: manual;
-}
-
-/* Ragged below sm, justified above. Justification needs enough words per line
-   to spread the slack; measured word-space stretch on one paragraph:
-     360px -> 3.6x   390px -> 3.0x   430px -> 3.5x   540px -> 3.0x
-     640px -> 2.0x   768px -> 2.0x   1024px -> 2.4x  1280px -> 2.0x
-   It settles at 640px, so that's the line. */
-@media (width < 40rem) {
-  .mdx p {
-    @apply text-left;
-    -webkit-hyphens: manual;
-    hyphens: manual;
-  }
+/* Figure number, Linear-style: small mono caps ahead of the caption. Not
+   italic, so it reads as a label rather than part of the sentence. */
+.mdx figcaption .fig-num {
+  @apply text-foreground/60 mr-2 font-mono text-[0.85em] tracking-wider uppercase not-italic;
 }
 
 /* Tables */
@@ -337,7 +315,7 @@
 }
 
 .mdx th {
-  @apply text-foreground/60 pr-7 pb-2.5 text-left text-[0.8em] font-medium tracking-wider uppercase whitespace-nowrap;
+  @apply text-foreground/60 pr-7 pb-2.5 text-left text-[0.8em] font-medium uppercase whitespace-nowrap;
 }
 
 .mdx td {
@@ -377,7 +355,7 @@
    outlined chips speckle the text block. 0.875em keeps the mono x-height
    level with the prose around it. */
 .mdx :not(pre) > code {
-  @apply bg-muted/40 text-foreground rounded px-1 py-px font-mono text-[0.875em];
+  @apply bg-muted text-foreground rounded px-1 py-px font-mono text-[0.875em];
   font-variant-ligatures: none;
 }
 

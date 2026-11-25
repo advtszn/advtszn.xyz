@@ -18,7 +18,7 @@ const links = [
 <header class="ml-2 inline-block rounded-md lg:hidden">
   <button
     id="menu-button"
-    class="bg-sidebar fixed top-4 left-3 z-50 space-y-1 rounded p-2.5"
+    class="bg-muted fixed top-4 left-3 z-50 space-y-1 rounded p-2.5"
   >
     <div class="bg-foreground h-0.5 w-5"></div>
     <div class="bg-foreground h-0.5 w-5"></div>
@@ -34,7 +34,7 @@ const links = [
           class={cn(
             "group text-muted-foreground relative w-full rounded-md p-2",
             {
-              "bg-muted":
+              "bg-muted text-foreground":
                 href === "/" ? pathname === "/" : pathname.startsWith(href),
             },
           )}

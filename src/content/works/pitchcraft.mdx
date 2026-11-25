@@ -25,7 +25,7 @@ contribution: >-
 ---
 
 import Screenshot from "~/components/common/screenshot.astro";
-import orchestrator from "~/assets/images/pitchcraft/orchestrator.png";
+import orchestrator from "~/assets/images/pitchcraft/orchestrator.svg";
 import deckCover from "~/assets/images/pitchcraft/deck-cover.png";
 import deckTension from "~/assets/images/pitchcraft/deck-tension.png";
 import deckFormats from "~/assets/images/pitchcraft/deck-formats.png";
@@ -66,7 +66,7 @@ The 15 pitches then more or less existed to derive how pitch kits are actually w
 I built a [orchestrator-worker](https://ai-sdk.dev/docs/agents/workflows#orchestrator-worker) pattern multi-agent system: a root agent that plans the research, farms it out to three specialised workers at once, and composes what they return into a brief for a writer, which streams the pitch back for the app to render as an artifact.
 
 
-<Screenshot src={orchestrator}  alt="Orchestrator-worker flow: a brand name goes to the root agent, which sends a task to brand-researcher, social-listening and competitor-analysis, whose findings converge on write-artifact, which outputs the deck" />
+<Screenshot src={orchestrator} lightbox={false} fig="0.1" caption="one brief fans out to three researchers in parallel, and their findings fan back in to a single writer" alt="Orchestrator-worker flow: a brand name goes to the root agent, which sends a task to brand-researcher, social-listening and competitor-analysis, whose findings converge on write-artifact, which outputs the deck" />
 
 
 All three researchers run with reasoning set to none, because they execute a tightly specified search protocol and return a fixed contract, so thinking tokens there pump up latency and tokens without actually making a real impact. The compilation is done by the same root orchestrator agent after reading the result of its subagents.
@@ -134,7 +134,7 @@ That one prompt, with nothing else, produced this.
 
 Nine slides, and it hits the house grammar on every one: the tension (why does an Indian marathoner running 42km in 32°C have to fuel like a hospital patient), the reframe, a named idea with a device in The Field Audit, four phases, seven content formats, distribution mapped to handle archetypes, proof, and a commitment slide naming only services that exist in the catalogue. It is set in the brand's own colours, pulled during research. And the claims on the tension and proof slides are live links to the Reddit threads and race reports they came from, because the writer could not have cited anything else.
 
-<p class="my-12 text-center">
+<p class="my-12">
   <a href="/artifacts/pitchcraft/fuel-without-borders-plusonethree.pdf" target="_blank" rel="noopener">Read the full deck</a>
 </p>
 

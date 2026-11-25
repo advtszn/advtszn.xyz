@@ -4,9 +4,14 @@ import { Image } from "astro:assets";
 interface Props {
   src: ImageMetadata;
   alt: string;
+  /** Set false for figures that shouldn't open in the lightbox. */
+  lightbox?: boolean;
+  /** Figure number shown before the caption, e.g. "0.1". */
+  fig?: string;
+  caption?: string;
 }
 
-const { src, alt } = Astro.props;
+const { src, alt, lightbox = true, fig, caption } = Astro.props;
 ---
 
 <figure>
@@ -14,8 +19,14 @@ const { src, alt } = Astro.props;
     src={src}
     alt={alt}
     class="rounded"
-    data-lightbox
+    data-lightbox={lightbox ? "" : undefined}
     loading="lazy"
     decoding="async"
   />
+  {(fig || caption) && (
+    <figcaption>
+      {fig && <span class="fig-num">fig {fig}</span>}
+      {caption}
+    </figcaption>
+  )}
 </figure>

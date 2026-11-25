@@ -14,15 +14,15 @@ featured: true
 url: https://kimchipremium.io
 thumbnail: /images/kimchipremium/thumbnail.png
 timeline: 3 months
-overview: Crypto news is dominated by English-language sources, leaving Korean traders relying on delayed or secondhand translations. Kimchi Premium is a bilingual crypto news aggregator that delivers real-time alpha to Korean crypto communities by scraping, summarizing, and translating headlines from major English-language sources into Korean.
-contribution: Built the end-to-end ETL pipeline, webhook backend, job processing system, and bilingual distribution layer across Telegram and the public website.
+overview: Crypto news is dominated by English-language sources, leaving Korean traders relying on delayed or secondhand translations. Kimchi Premium is a bilingual crypto news aggregator that delivers almost real-time alpha to Korean crypto communities.
+contribution: Built the scrapers, backend, job processing and bilingual distribution layer across Telegram and the public website.
 ---
 
 import Screenshot from "~/components/common/screenshot.astro";
 import desktopHero from "~/assets/images/kimchipremium/desktop-hero.png";
 import ipadArticles from "~/assets/images/kimchipremium/ipad-articles.png";
 import iphoneNews from "~/assets/images/kimchipremium/iphone-news.png";
-import pipelineDiagram from "~/assets/images/kimchipremium/pipeline-diagram.png";
+import pipelineDiagram from "~/assets/images/kimchipremium/pipeline-diagram.svg";
 
 
 ## The Language Barrier
@@ -33,7 +33,7 @@ By the time any of it reaches Korean traders, it's already been through a game o
 
 ## How It Works
 
-<Screenshot src={pipelineDiagram} alt="Kimchi Premium ETL pipeline architecture showing ingestion, processing, and delivery stages" />
+<Screenshot src={pipelineDiagram} lightbox={false} fig="0.1" alt="Kimchi Premium ETL pipeline architecture showing ingestion, processing, and delivery stages" />
 
 The mechanics are simple. Every 15 minutes, the system scrapes headlines from five crypto news sources, generates a concise summary of each article, translates both the headline and summary into Korean, and pushes the result out to a Telegram channel and a public website, all without human intervention.
 
