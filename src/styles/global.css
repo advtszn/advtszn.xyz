@@ -375,7 +375,7 @@
    outlined chips speckle the text block. 0.875em keeps the mono x-height
    level with the prose around it. */
 .mdx :not(pre) > code {
-  @apply bg-muted/40 text-foreground rounded px-1 py-px font-mono text-[0.875em];
+  @apply bg-muted text-foreground rounded px-1 py-px font-mono text-[0.875em];
   font-variant-ligatures: none;
 }
 
