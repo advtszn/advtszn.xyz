@@ -14,12 +14,14 @@ const writings = (await getCollection("writings")).sort(
     <div class="flex items-end justify-between border-b pb-2">
       <h2 id="writings" class="text-2xl text-foreground font-medium scroll-mt-16">writings</h2>
       <a
-        href={"/writings"}
-        class="inline-flex items-center gap-x-1 text-sm font-medium hover:text-foreground transition-colors"
+        href={"/works"}
+        class="inline-flex items-center gap-x-1 text-sm font-medium hover:text-foreground transition-colors group"
       >
         view all
-        <ArrowUpRight class="size-3" />
-      </a>
+        <ArrowUpRight
+          class="size-3 transition-transform group-hover:-translate-y-[1px] group-hover:translate-x-[1px]"
+        />
+      </a>     
     </div>
   </div>
 

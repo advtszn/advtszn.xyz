@@ -40,21 +40,19 @@ Listable answers one question for brands: when someone asks ChatGPT, Gemini or P
   <Screenshot src={dashboardPromptDetail} alt="Prompt detail view with response history and metrics" />
 </div>
 
-The classification problem sounds simple (given an LLM response, figure out which brands are mentioned and where) and we got it wrong three times.
+The classification problem sounds simple (given an LLM response, figure out which brands are mentioned and where) and it took four iterations to get right.
 
-The first version was a two-pass LLM setup: one call generates the response, a second call evaluates and classifies it. It worked, but using an LLM to read another LLM's output felt like overkill, so we replaced it with something deterministic. (We were wrong about the overkill part, but that took a while to surface.)
+The first version was a two-pass LLM setup: one call generates the response, a second classifies it. Using an LLM to read another LLM's output felt like overkill, so we replaced it with something deterministic.
 
-The deterministic version was a small markdown AST parser I wrote that walks the response, finds any ordered or unordered list, checks if the brand appears in it, and treats every other brand in the same list as a competitor and the sources and citation urls were extracted similarly. It was fast and free but non-semantic.
+The deterministic version was a small markdown parser that walks the response, finds any ordered or unordered list, checks if the brand appears in it, and treats every other brand in the same list as a competitor and the sources and citation urls were extracted similarly. It was fast and free but non-semantic.
 
-Brands don't appear in responses under one canonical name; if wldd showed up as "wubba lubba dub dub" the parser counted it as no mention at all. Aliases, abbreviations and stylized names made the whole thing miss constantly.
+Brands don’t appear in responses under one canonical name; if wldd showed up as “wubba lubba dub dub” the parser counted it as no mention at all. Aliases, abbreviations and stylized names made the whole thing miss constantly.
 
-The deeper problem was that structure isn't semantics, and ranking exposed it. Because position comes from where a brand sits in a list, the ranking is only ever scoped to whatever list it appeared in, not the response as a whole.
+And saving rankings for the competitors is worse, because a list item might be a bare company name or a full paragraph describing one, and the parser can’t tell the difference, so there’s no reliable way to know what the other items in the list even are.
 
-And saving rankings for the competitors is worse, because a list item might be a bare company name or a full paragraph describing one, and the parser can't tell the difference, so there's no reliable way to know what the other items in the list even are.
+So we went back to the two-pass LLM approach. That fixed accuracy but surfaced a different problem: raw API output isn't what users actually see in the consumer apps, which layer on search, tools and tuning the APIs don't have.
 
-So we went back to the two-pass LLM approach, which got expensive quickly and had a maintenance problem: every new model meant updating the registry but the bigger issue was that an API call to `gpt-4o-mini` is not what a user sees in ChatGPT; the consumer apps are loaded with tools, search and tuning that the raw APIs don't have.
-
-The version that was finalized scrapes the actual consumer apps. Each evaluation fans out to three pipelines in parallel (ChatGPT, Perplexity, and Google's AI Mode), triggered through a browser webscraping service, so the response is what a real user would see. The scraped answer then uses a combination of regex and LLM analysis for the second pass, which classifies the mentions, positions and cited sources into the metrics.
+The final version evaluates responses as users see them (response that you'd get if you actually searched via the app, not the api), with a second pass that combines regex-based matching and LLM analysis to turn each answer into mentions, positions and cited sources.
 
 ## Background Jobs Without a Queue
 
@@ -68,21 +66,15 @@ A sort on priority and last-run time gives fair scheduling, a reaper marks runs 
 
 <Screenshot src={multiTenantArchitecture} alt="Blog multi-tenancy sequence diagram: dashboard connects a domain, backend stores the CNAME record, a job polls for propagation, and the blog frontend resolves tenants from the Host header" />
 
-Every project gets a hosted, GEO-optimized blog on its own subdomain. Honestly, this part was the most interesting one and simpler than it looked. The flow is: connect a domain, you get a CNAME record, a background worker (same MongoDB lock pattern as the evaluation job) polls the domain's DNS records via node's built-in `resolveCname` and marks propagation successful once the expected record resolves for the CNAME.
+Every project gets a hosted, GEO-optimized blog on its own domain. Honestly, this part was the most interesting one and simpler than it looked: connect a domain, add a CNAME record, and a background job verifies it.
 
-But that only works if your domain isn't proxied through a service like Cloudflare. Behind a proxy you'll never get a value for the CNAME. So we worked backwards: what if instead of verifying records we verified the propagation directly? The multi-tenant blog site is a Next.js site, so the job was refactored to send a HEAD request to the requested domain's challenge endpoint and check whether the response headers contained an `x-listable-challenge` header with the desired challenge nonce. Since only our frontend sets that header with that value, a matching response proves the CNAME points at us.
+Checking DNS records directly breaks the moment a domain sits behind a proxy like Cloudflare, since the CNAME is never visible. So instead of verifying the record, the job verifies the result: it requests the domain and checks for a challenge that only our frontend serves; if it comes back, the domain demonstrably routes to us. Domains get revalidated periodically, and TLS certificates are issued on demand via Caddy, so there's no provisioning step.
 
-Domains get periodically revalidated the same way, to invalidate any that stop pointing at us later. SSL is Caddy's on-demand TLS on the VM, which issues a cert the first time a verified hostname gets a request, so there's no cert provisioning step in our code at all.
+Once verified, one frontend serves every tenant. On each request the frontend reads its own Host header and calls the backend with that hostname; a backend middleware looks the domain up, resolves it to a project, and attaches that `projectId` onto the request context before any handler runs.
 
-Once a domain is verified, routing is the easy part precisely because the CNAME already does the work. A visitor hits `blog.advtszn.xyz`, the propagated CNAME resolves that to our blog frontend, and the same Next.js site serves every tenant.
+From there the handlers are tenant-agnostic, so the exact same code path serves a different blog depending only on which domain the request came in on.
 
-On each request the frontend reads its own Host header and calls the backend with that hostname; a backend middleware looks the domain up, resolves it to a project, and attaches that `projectId` onto the request context before any handler runs.
-
-From there the handlers are tenant-agnostic: they just read `projectId` off the context and scope their aggregation and article queries to it, so the exact same code path serves a different blog depending only on which domain the request came in on.
-
-What does that challenge actually guarantee? The obvious worry is a malicious actor standing up a site at the requested domain and serving us the nonce. To do that they'd have to make the challenge endpoint return the header, which means controlling either the domain's DNS or the server it already resolves to. The only way that happens for a domain someone doesn't own is if that domain's DNS panel is compromised, and at that point the attacker can reissue TLS certs, intercept email and redirect the whole domain, its a security failure on user's end -- not on us.
-
-The nonce being predictable doesn't matter either, it isn't a bearer token; its value is bound to "this domain routes to us and resolves to this project." Whoever connects a domain already knows their own nonce, and knowing it buys nothing, because they still have to serve it from a domain they control. The gate is domain control.
+What does that challenge actually guarantee? The obvious worry is a malicious actor standing up a site at the requested domain and serving us the nonce. To do that they’d have to make the challenge endpoint return the header, which means controlling either the domain’s DNS or the server it already resolves to. Anyone with that level of control can already do far worse than claim a blog, so domain control is the right gate.
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
   <Screenshot src={dashboardArticles} alt="Articles table showing published blog content" />
